@@ -88,15 +88,15 @@ export class Map3D {
       m.on('mousemove', layer, e => { m.getCanvas().style.cursor = 'pointer'; const f = e.features[0]; this.popup.setLngLat(f.geometry.type === 'Point' ? f.geometry.coordinates : e.lngLat).setHTML(html(f.properties)).addTo(m); });
       m.on('mouseleave', layer, () => { m.getCanvas().style.cursor = ''; this.popup.remove(); });
     };
-    hover('apps', p => `<b>${p.name}</b> · ${p.id}<br>${p.dec} · pin ${p.pin}<br><span class="muted">Click to open</span>`);
+    hover('apps', p => `<b>${p.name}</b> · ${p.id}<br>${p.dec} · pin ${p.pin}${p.place ? ` · ${p.place}` : ''}<br><span class="muted">Click to open</span>`);
     hover('pillars', p => p.kind === 'store' ? `<b>${p.id}</b> our store · pin ${p.pin}` : `<b>${p.name}</b> · ${p.id}<br>${p.dec} · score ${p.score}`);
-    hover('stores', p => `<b>${p.id}</b> our store · pin ${p.pin} · opened ${p.opened}<br><span class="muted">Click: applicants in this pin</span>`);
-    hover('free', p => `Empty pin <b>${p.pin}</b> · ${p.ter}<br><span class="muted">Click: who applied here</span>`);
+    hover('stores', p => `<b>${p.id}</b> our store · pin ${p.pin}${p.place ? ` · ${p.place}` : ''} · opened ${p.opened}<br><span class="muted">Click: applicants in this pin</span>`);
+    hover('free', p => `Empty pin <b>${p.pin}</b>${p.place ? ` · ${p.place}` : ''} · ${p.ter}<br><span class="muted">Click: who applied here</span>`);
     hover('cities', p => `<b>${p.name}</b><br>${p.n} applied · ${p.ready} ready to call<br>${p.open} empty spots · ${p.stores} stores<br><span class="muted">Click to fly in</span>`);
-    m.on('click', 'apps', e => { const p = e.features[0].properties; this.cb.onTarget?.({ pin: p.pin, city: p.city, lng: e.lngLat.lng, lat: e.lngLat.lat, label: p.name }); this.cb.onApp(p.id); });
+    m.on('click', 'apps', e => { const p = e.features[0].properties; this.cb.onTarget?.({ pin: p.pin, city: p.city, lng: e.lngLat.lng, lat: e.lngLat.lat, label: `${p.name} · ${p.pin}${p.place ? ' ' + p.place : ''}` }); this.cb.onApp(p.id); });
     m.on('click', 'pillars', e => { const p = e.features[0].properties; if (p.kind === 'app') this.cb.onApp(p.id); else this.cb.onPin(p.pin); });
     m.on('click', 'stores', e => { const p = e.features[0].properties; this.cb.onTarget?.({ pin: p.pin, city: p.city, label: p.id }); this.cb.onPin(p.pin); });
-    m.on('click', 'free', e => { const p = e.features[0].properties; this.cb.onTarget?.({ pin: p.pin, city: p.city, label: `Pin ${p.pin}` }); this.cb.onPin(p.pin); });
+    m.on('click', 'free', e => { const p = e.features[0].properties; this.cb.onTarget?.({ pin: p.pin, city: p.city, label: `Pin ${p.pin}${p.place ? ' · ' + p.place : ''}` }); this.cb.onPin(p.pin); });
     m.on('click', 'cities', e => this.cb.onCity(e.features[0].properties.name));
     m.on('dragstart', () => { this.spin = false; });
   }
@@ -109,9 +109,9 @@ export class Map3D {
     const set = (id, f) => m.getSource(id).setData(fc(f));
     set('heat', view.layer === 'none' ? [] : view.heat.map(h => ({ type: 'Feature', properties: { w: h.w }, geometry: { type: 'Point', coordinates: [h.lng, h.lat] } })));
     set('catch', stores.map(s => ({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: ring(s.lng, s.lat, cfg.overlapKm) } })));
-    set('stores', stores.map(s => ({ type: 'Feature', properties: { id: s.id, pin: s.pin, opened: s.opened || '', city: s.city }, geometry: { type: 'Point', coordinates: [s.lng, s.lat] } })));
-    set('apps', showApps.map(a => ({ type: 'Feature', properties: { id: a.id, name: a.name, dec: a.decLabel, pin: a.pin, city: a.city, c: a.color, ready: a.ready }, geometry: { type: 'Point', coordinates: [a.lng, a.lat] } })));
-    set('free', view.free.map(p => ({ type: 'Feature', properties: { pin: p.pin, ter: p.ter, city: p.city }, geometry: { type: 'Point', coordinates: [p.lng, p.lat] } })));
+    set('stores', stores.map(s => ({ type: 'Feature', properties: { id: s.id, pin: s.pin, place: s.place || '', opened: s.opened || '', city: s.city }, geometry: { type: 'Point', coordinates: [s.lng, s.lat] } })));
+    set('apps', showApps.map(a => ({ type: 'Feature', properties: { id: a.id, name: a.name, dec: a.decLabel, pin: a.pin, place: a.place || '', city: a.city, c: a.color, ready: a.ready }, geometry: { type: 'Point', coordinates: [a.lng, a.lat] } })));
+    set('free', view.free.map(p => ({ type: 'Feature', properties: { pin: p.pin, place: p.place || '', ter: p.ter, city: p.city }, geometry: { type: 'Point', coordinates: [p.lng, p.lat] } })));
     const tall = view.mode === 'city';
     set('pillars', tall ? [
       ...stores.map(s => ({ type: 'Feature', properties: { kind: 'store', id: s.id, pin: s.pin, c: '#ffffff', h: 900 }, geometry: { type: 'Polygon', coordinates: square(s.lng, s.lat, 70) } })),

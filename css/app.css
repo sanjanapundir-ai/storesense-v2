@@ -780,3 +780,20 @@ label.source-pill:hover { color: var(--text); border-color: var(--accent); }
 #a-notes { overflow-y: auto; flex: 1; }
 @media (max-width: 600px) { .assist { inset: 0; width: auto; border-radius: 0; } .fab { right: 14px; bottom: 14px; padding: 12px 16px; } }
 .log-t td:nth-child(3) { min-width: 160px; } @media (max-width: 600px) { .log-t td:nth-child(4), .log-t th:nth-child(4) { display: none; } }
+
+/* pin code with its locality name */
+a.lnk.pin { white-space: nowrap; }
+.pin-place { font-size: .92em; color: var(--text-2); text-decoration: none; display: inline; }
+a.lnk.pin:hover .pin-place { color: var(--accent-ink); }
+dd.pins { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+dd.pins a.lnk.pin { display: inline-flex; gap: 5px; align-items: baseline; padding: 2px 9px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 10%, transparent); text-decoration: none; font-size: 13px; }
+dd.pins a.lnk.pin:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+/* applicant's own answers */
+.answers h3 span { text-transform: none; letter-spacing: 0; }
+.raw-t th[scope=row] { color: var(--text-2); font-weight: 500; white-space: nowrap; width: 1%; padding-right: 14px; text-transform: none; letter-spacing: 0; font-size: 13px; }
+.raw-t td { font-size: 14px; }
+.raw-t .raw { color: var(--text); font-weight: 500; overflow-wrap: anywhere; }
+.raw-t .blank { color: var(--muted); font-style: italic; font-size: 13px; }
+.raw-t .readas { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-ink); white-space: nowrap; }
+.raw-t tr:nth-child(even) td, .raw-t tr:nth-child(even) th { background: color-mix(in srgb, var(--accent) 4%, transparent); }

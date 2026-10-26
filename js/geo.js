@@ -272,3 +272,34 @@ export async function refinePins(pins, onProgress) {
   try { localStorage.setItem('storesense.pins', JSON.stringify(liveCache)); } catch { /* storage blocked */ }
   return todo.length;
 }
+
+// ---- Locality names for pin codes, from India Post's public pin-code service ----
+// Fetched once per pin and cached in this browser; nothing is made up if a lookup fails.
+const placeCache = (() => { try { return JSON.parse(globalThis.localStorage?.getItem('storesense.places') || '{}'); } catch { return {}; } })();
+const RANK = o => (/Sub Post|Head Post/.test(o.BranchType) ? 2 : 0) + (o.DeliveryStatus === 'Delivery' ? 1 : 0);
+const cleanName = n => String(n || '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+/g, ' ').trim();
+export function pinPlace(pin) { const p = placeCache[String(pin)]; return p && p.name ? p : null; }
+export async function fetchPlaces(pins, onDone) {
+  const todo = [...new Set(pins.map(String))].filter(p => /^[1-9]\d{5}$/.test(p) && !(p in placeCache)).slice(0, 400);
+  if (!todo.length) return 0;
+  let i = 0, got = 0;
+  const worker = async () => {
+    while (i < todo.length) {
+      const p = todo[i++];
+      try {
+        const r = await fetch(`https://api.postalpincode.in/pincode/${p}`);
+        const j = (await r.json())?.[0];
+        const offices = j?.Status === 'Success' ? j.PostOffice || [] : [];
+        if (offices.length) {
+          const best = [...offices].sort((a, b) => RANK(b) - RANK(a))[0];
+          placeCache[p] = { name: cleanName(best.Name), district: best.District, state: best.State, others: offices.filter(o => o !== best).map(o => cleanName(o.Name)).slice(0, 6) };
+          got++;
+        } else placeCache[p] = { name: null };
+      } catch { /* leave uncached; try again next visit */ }
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, worker));
+  try { localStorage.setItem('storesense.places', JSON.stringify(placeCache)); } catch { /* storage blocked */ }
+  onDone?.(got);
+  return got;
+}

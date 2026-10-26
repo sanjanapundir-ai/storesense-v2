@@ -3,7 +3,7 @@ import { parseWorkbook } from './parse.js';
 import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES } from './engine.js';
 import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
-import { pinPoint, refinePins, cityInfo, cityForPin, stateForPin } from './geo.js';
+import { pinPoint, refinePins, cityInfo, cityForPin, stateForPin, pinPlace, fetchPlaces } from './geo.js';
 import { Map3D } from './map3d.js';
 import { Flow } from './flow.js';
 
@@ -54,6 +54,17 @@ function load(sheets, source, quiet) {
 function recompute() {
   S.result = run(S.data, S.settings);
   renderAll();
+  loadPlaces();
+}
+// Fetch locality names for every pin in the file, then redraw once they arrive
+function loadPlaces() {
+  const r = S.result;
+  const pins = [...r.territories.flatMap(t => t.pins.slice(0, 120)), ...r.stores.map(s => s.pin), ...r.apps.map(a => a.assignedPin || a.pin)].filter(Boolean);
+  fetchPlaces(pins, got => {
+    if (!got) return;
+    renderTab(S.tab);
+    if (S.openId) openDrawer(S.openId, true);
+  });
 }
 
 $('#file').addEventListener('change', async e => {
@@ -488,6 +499,34 @@ function rowHtml(a) {
   </div>`;
 }
 
+
+// The applicant's own answers, word for word, with our reading shown only where we changed it
+function answersHtml(a) {
+  const rows = a.raw?.length ? a.raw : [
+    ['Name', a.name, 'name'], ['City', a.city, 'city'], ['State', a.state, 'state'], ['Pin code', a.pin, 'pin'], ['Investment', a.invest, 'invest'], ['Experience', a.exp, 'exp'],
+    ['Current / past business', a.business, 'business'], ['Space available', a.spaceRaw, 'space'], ['Space size', a.size, 'size'], ['Floor', a.floorRaw, 'floor'], ['Target launch', a.launch, 'launch'], ['Language', a.lang, 'lang'], ['Notes', a.notes, 'notes'],
+  ].map(([h, v, k]) => ({ h, v: v ?? '', k }));
+  const readAs = {
+    invest: () => (a.invest == null ? (String(a.raw?.find(x => x.k === 'invest')?.v ?? '').trim() ? 'not readable' : 'missing') : lakh(a.invest)), exp: () => (a.exp == null ? (String(a.raw?.find(x => x.k === 'exp')?.v ?? '').trim() ? 'not readable' : 'missing') : `${a.exp} years`),
+    space: () => a.spaceStd, floor: () => a.floorStd, launch: () => `${a.launchUsed} months`, pin: () => a.pin || 'missing',
+    combo: () => `${a.cityName}, ${a.stateName}${a.pin ? ' ' + a.pin : ''}`, lang: () => a.lang, city: () => a.cityName, state: () => a.stateName,
+    size: () => (a.sizeAssumed ? `${a.sizeUsed} sq ft (assumed)` : a.size != null ? `${a.size} sq ft` : ''),
+  };
+  const same = (x, y) => String(x ?? '').trim().toLowerCase().replace(/[\s,₹]/g, '') === String(y ?? '').trim().toLowerCase().replace(/[\s,₹]/g, '');
+  const body = rows.map(r => {
+    const raw = String(r.v ?? '').trim();
+    const read = r.k && readAs[r.k] ? readAs[r.k]() : '';
+    const num = x => { const m = String(x ?? '').replace(/,/g, '').match(/\d+(\.\d+)?/); return m ? +m[0] : null; };
+    const numeric = ['invest', 'exp', 'size', 'launch'].includes(r.k);
+    const changed = read && (numeric
+      ? !raw || num(raw) !== num(read) || /\d[^\d.,]+\d/.test(raw.replace(/,/g, '')) || /crore|cr\b|k\b|month|week|year|asap|q[1-4]/i.test(raw) && r.k !== 'launch' && r.k !== 'exp' || /assumed/.test(read)
+      : !same(raw, read));
+    return `<tr><th scope="row">${esc(r.h)}</th><td>${raw ? `<span class="raw">${esc(raw)}</span>` : '<span class="blank">left blank</span>'}</td><td>${changed ? `<span class="readas">${esc(read)}</span>` : ''}</td></tr>`;
+  }).join('');
+  return `<div class="sec answers"><h3>Their answers <span>${a.inquiry ? 'from the enquiry form' : `exactly as in the file${a.row ? `, row ${a.row}` : ''}`}</span></h3>
+    <div class="tbl-wrap"><table class="t raw-t"><tr><th>Question</th><th>What they wrote</th><th>We read it as</th></tr>${body}</table></div></div>`;
+}
+
 // ---------------- drawer ----------------
 function openDrawer(id, keep, fromRoute) {
   const a = S.result.apps.find(x => x.id === id);
@@ -509,6 +548,7 @@ function openDrawer(id, keep, fromRoute) {
       <p style="margin-top:8px">${linkText(a.headline)}</p>
     </div>
     <div class="dr-b">
+      ${answersHtml(a)}
       <div class="sec"><h3>Why</h3><ul>${(a.reasons || []).map(r => `<li>${linkText(r)}</li>`).join('')}</ul></div>
       ${traceHtml(a)}
 
@@ -539,9 +579,6 @@ function openDrawer(id, keep, fromRoute) {
         <label class="ms ${prog[m.key] ? 'done' : ''}"><input type="checkbox" data-ms="${m.key}" ${prog[m.key] ? 'checked' : ''}><div><div class="t">${esc(m.label)}</div><div class="d">${esc(m.detail)} · ${esc(m.owner)}</div></div><div class="due">${fmtDate(m.due)}</div></label>`).join('')}</div>
         </div>` : `<div class="sec"><h3>What happens next</h3>${nextSteps(a, res)}</div>`}
       ${a.issues?.length ? `<div class="sec"><h3>Things we fixed or need</h3><ul>${a.issues.map(i => `<li>${i.level === 'block' ? '<b>Need:</b> ' : ''}${linkText(i.text)}</li>`).join('')}</ul></div>` : ''}
-      <div class="sec"><h3>Application</h3><dl class="kv">
-        <dt>Work</dt><dd>${esc(a.business || '—')}</dd><dt>Space</dt><dd>${esc(a.spaceRaw || '—')} · ${a.size ?? '—'} sq ft · ${esc(a.floorRaw || '—')}</dd>
-        <dt>Wants to open in</dt><dd>${a.launch ?? '—'} months</dd><dt>Language</dt><dd>${esc(a.lang)}</dd><dt>Notes</dt><dd>${esc(a.notes || '—')}</dd></dl></div>
       <div class="sec" id="dr-compose-sec" hidden><h3>Message <span>${esc(a.lang)}</span></h3><textarea class="compose" id="dr-compose"></textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="btn sm primary" id="dr-copy">Copy message</button><span class="small muted">Not sent automatically.</span></div></div>
     </div>
     <div class="dr-f">
@@ -644,7 +681,8 @@ function renderTerritories() {
         <dl class="kv">
           <dt>Got a spot</dt><dd><div class="winners">${t.winners.map(w => `<span class="winner" data-app="${esc(w.id)}" title="${esc(w.headline)}">${esc(w.name)} <span class="muted">${w.combined}</span></span>`).join('') || '—'}</div></dd>
           <dt>Waitlist</dt><dd>${t.waitlist.length ? t.waitlist.slice(0, 4).map(w => `<a href="#" data-app="${esc(w.id)}">${esc(w.id)}</a>`).join(', ') + (t.waitlist.length > 4 ? ` +${t.waitlist.length - 4}` : '') : '—'}</dd>
-          <dt>Empty pins</dt><dd>${t.pinsFree.map(pinLink).join(', ') || '—'}</dd>
+          <dt>Covers</dt><dd class="pins">${t.pins.slice(0, 12).map(pinLink).join('') || (t.prefixes?.length ? `pins starting ${t.prefixes.join(', ')}` : `all of ${esc(t.city)}`)}${t.pins.length > 12 ? `<span class="muted"> +${t.pins.length - 12} more</span>` : ''}</dd>
+          <dt>Empty pins</dt><dd class="pins">${t.pinsFree.map(pinLink).join('') || '—'}</dd>
           ${t.pairings.length ? `<dt>Team-ups</dt><dd><button class="linkish" data-pair="${t.id}">${t.pairings.length} pair${t.pairings.length > 1 ? 's' : ''} could invest together</button></dd>` : ''}
         </dl>
       </div></div>`).join('')}</div>` : empty('No areas here.')}`;
@@ -750,9 +788,9 @@ function drawMap() {
   ters.forEach(t => t.pins.slice(0, 400).forEach(p => pinSet.set(p, { tier: t.tier, city: t.city })));
   apps.forEach(a => pinSet.set(a.pin, { tier: a.tier, city: a.cityName }));
   const heat = [...pinSet].map(([p, o]) => { const pt = pinPoint(p, o.city), px = pinProxy(p, o.tier); return { lat: pt.lat, lng: pt.lng, w: mapLayer === 'demographic' ? px.demographic : px.demand }; });
-  const free = ters.flatMap(t => t.pinsFree.slice(0, 60).map(p => { const pt = pinPoint(p, t.city); return { pin: p, ter: t.id, city: t.city, lat: pt.lat, lng: pt.lng }; }));
-  const appsV = apps.map(a => ({ id: a.id, name: a.name, decision: a.decision, decLabel: DEC_SHORT[a.decision], pin: a.assignedPin || a.pin, city: a.cityName, color: colr(`--d-${a.decision}`), ready: a.bucket === 'ready', score: Math.round(a.combined || 0), lat: a.point.lat, lng: a.point.lng }));
-  const storesV = stores.map(s => ({ id: s.id, pin: String(s.pin), opened: s.opened, city: s.city, lat: s.point.lat, lng: s.point.lng }));
+  const free = ters.flatMap(t => t.pinsFree.slice(0, 60).map(p => { const pt = pinPoint(p, t.city); return { pin: p, place: pinPlace(p)?.name || '', ter: t.id, city: t.city, lat: pt.lat, lng: pt.lng }; }));
+  const appsV = apps.map(a => ({ id: a.id, name: a.name, decision: a.decision, decLabel: DEC_SHORT[a.decision], pin: a.assignedPin || a.pin, place: pinPlace(a.assignedPin || a.pin)?.name || '', city: a.cityName, color: colr(`--d-${a.decision}`), ready: a.bucket === 'ready', score: Math.round(a.combined || 0), lat: a.point.lat, lng: a.point.lng }));
+  const storesV = stores.map(s => ({ id: s.id, pin: String(s.pin), place: pinPlace(s.pin)?.name || '', opened: s.opened, city: s.city, lat: s.point.lat, lng: s.point.lng }));
   const cityAgg = india ? mapCityList(res).map(c => {
     const ci = cityInfo(c.city), pts = [...res.apps.filter(a => a.cityName === c.city && a.point).map(a => a.point), ...res.stores.filter(s => s.city === c.city && s.point).map(s => s.point)];
     const lat = ci?.lat ?? pts.reduce((x, p) => x + p.lat, 0) / (pts.length || 1), lng = ci?.lng ?? pts.reduce((x, p) => x + p.lng, 0) / (pts.length || 1);
@@ -770,7 +808,7 @@ function drawMap() {
     const p = S.mapFocus; S.mapFocus = null;
     const pt = pinPoint(p, india ? undefined : mapCity);
     focus = { pin: p, lat: pt.lat, lng: pt.lng };
-    setGoogle({ pin: p, city: india ? '' : mapCity, label: `Pin ${p}` });
+    setGoogle({ pin: p, city: india ? '' : mapCity, label: `Pin ${p}${pinPlace(p) ? ' · ' + pinPlace(p).name : ''}` });
   } else if (!mapTarget || mapTarget.city !== mapCity) setGoogle({ city: mapCity, label: india ? 'All India' : mapCity });
   map3d.render({ mode: india ? 'india' : 'city', city: mapCity, apps: appsV, stores: storesV, cfg, layer: mapLayer, hide: S.mapHide || {}, heat, free, cities: cityAgg, bounds, focus });
 
@@ -1061,7 +1099,8 @@ const WHERE = {
   tag: { label: v => TAG_LABEL[v] || v, test: (a, v) => (v === 'hot' ? a.hot : v === 'compliant' ? a.compliant : v === 'festival' ? !!a.timeline?.festivalMiss : v === 'notes' ? a.flags?.length > 0 : false) },
 };
 
-const pinLink = p => `<a class="lnk" data-go="map?pin=${esc(p)}" title="Show pin ${esc(p)} on the map">${esc(p)}</a>`;
+const placeTitle = p => { const pl = pinPlace(p); return pl ? `${pl.name}, ${pl.district}, ${pl.state}${pl.others?.length ? ` · also ${pl.others.join(', ')}` : ''}` : `Pin ${p}`; };
+const pinLink = p => { const pl = pinPlace(p); return `<a class="lnk pin" data-go="map?pin=${esc(p)}" title="${esc(placeTitle(p))} — show on the map">${esc(p)}${pl ? ` <span class="pin-place">${esc(pl.name)}</span>` : ''}</a>`; };
 // Turn IDs, territories, stores and pin codes inside any text into links
 function linkText(text, isHtml) {
   const h = isHtml ? String(text) : esc(text);
@@ -1069,7 +1108,7 @@ function linkText(text, isHtml) {
     m.startsWith('APP') ? `<a class="lnk" data-go="app/${m}">${m}</a>`
       : m.startsWith('TER') ? `<a class="lnk" data-go="territories/${m}">${m}</a>`
       : m.startsWith('ST') ? `<a class="lnk" data-go="map?store=${m}">${m}</a>`
-      : `<a class="lnk" data-go="map?pin=${m}">${m}</a>`);
+      : `<a class="lnk" data-go="map?pin=${m}" title="${esc(placeTitle(m))}">${m}</a>`);
 }
 
 // Step-by-step path through the rulebook for one applicant
@@ -1266,7 +1305,7 @@ function searchItems(q) {
     out.push({ kind: 'Territory', label: `${t.id} · ${t.city}`, sub: `${t.open > 0 ? `${t.open} empty spots` : 'Full'} · ${t.applicants} applied`, go: `territories/${t.id}` });
   const cities = [...new Set(res.apps.map(a => a.cityName))].filter(c => c && c.toLowerCase().includes(s)).slice(0, 2);
   for (const c of cities) out.push({ kind: 'City', label: c, sub: `${res.apps.filter(a => a.cityName === c).length} applied · see on the map`, go: `map?city=${encodeURIComponent(c)}` });
-  if (/^\d{6}$/.test(s)) out.push({ kind: 'Pin', label: `Pin ${s}`, sub: `${res.apps.filter(a => a.pin === s).length} applied here · ${cityForPin(s)?.name || stateForPin(s) || 'India'}`, go: `map?pin=${s}` });
+  if (/^\d{6}$/.test(s)) out.push({ kind: 'Pin', label: `Pin ${s}${pinPlace(s) ? ' · ' + pinPlace(s).name : ''}`, sub: `${res.apps.filter(a => a.pin === s).length} applied here · ${pinPlace(s)?.district || cityForPin(s)?.name || stateForPin(s) || 'India'}`, go: `map?pin=${s}` });
   for (const [k, [, title]] of Object.entries(PAGES)) if (title.toLowerCase().startsWith(s)) out.push({ kind: 'Page', label: title, sub: 'Open page', go: k });
   out.push({ kind: 'Ask', label: `Ask: “${q.trim()}”`, sub: 'Answered from your data and the rules', ask: q.trim() });
   return out;
@@ -1349,6 +1388,7 @@ function toggleEnquiry(show) {
       invest: +v.invest, exp: +v.exp, business: v.business.trim(), spaceRaw: v.space, space: v.space, size: v.size ? +v.size : null, floorRaw: v.floor, floor: v.floor,
       launch: +v.launch || 6, lang: v.lang, notes: v.notes.trim(), extra: { Source: 'Enquiry form' }, row: null, inquiry: true,
     };
+    app.raw = [['Name', v.name, 'name'], ['Pin code', v.pin, 'pin'], ['City', v.city, 'city'], ['State', v.state, 'state'], ['Money to invest (₹ lakh)', v.invest, 'invest'], ['Years running a shop', v.exp, 'exp'], ['Current or past work', v.business, 'business'], ['Shop space', v.space, 'space'], ['Size (sq ft)', v.size, 'size'], ['Floor', v.floor, 'floor'], ['Open in (months)', v.launch, 'launch'], ['Language', v.lang, 'lang'], ['Notes', v.notes, 'notes']].map(([h, val, k]) => ({ h, v: val, k }));
     S.inquiries.push(app); store.set('storesense.inquiries', S.inquiries);
     S.data = { ...S.data, applications: [...S.data.applications, { ...app }] };
     S.result = run(S.data, S.settings);

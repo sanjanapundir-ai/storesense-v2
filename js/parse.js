@@ -318,6 +318,9 @@ function readApplications(rows, { header, map, labels }, out, today) {
     if (!pin) { const m = String(get('notes') ?? '').match(/\b[1-8]\d{5}\b/); if (m) pin = m[0]; }
     const extra = {};
     row.forEach((v, i) => { if (!Object.values(map).includes(i) && !blank(v) && !blank(rows[header][i])) extra[String(rows[header][i]).trim()] = v; });
+    // Every answer exactly as written, in the file's own column order
+    const keyAt = Object.fromEntries(Object.entries(map).map(([k, i]) => [i, k]));
+    const raw = (rows[header] || []).map((h, i) => ({ h: String(h ?? '').trim(), v: row[i] ?? '', k: keyAt[i] || null })).filter(x => x.h);
     out.applications.push({
       id: blank(get('id')) ? `ROW-${r + 1}` : String(get('id')).trim(),
       name: clean(get('name')) || '(no name given)',
@@ -336,7 +339,7 @@ function readApplications(rows, { header, map, labels }, out, today) {
       lang: normLang(get('lang')),
       notes: clean(get('notes')),
       phone: clean(get('phone')), email: clean(get('email')),
-      extra,
+      extra, raw,
       row: r + 1,
     });
   }
