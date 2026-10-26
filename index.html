@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StoreSense</title>
+  <meta name="description" content="Find, pick and open new franchise stores">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>document.documentElement.dataset.theme = 'dark'; try { const t = localStorage.getItem('storesense.theme2'); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-shop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/><path d="M10 20v-5h4v5"/></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></symbol>
+      <symbol id="i-todo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></symbol>
+      <symbol id="i-area" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+      <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M15 8l2 2"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-4a3 3 0 0 0-3 3"/><path d="M20 4v14h-6"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="shell">
+    <aside class="side">
+      <div class="awning" aria-hidden="true"></div>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><svg><use href="#i-shop"/></svg></div>
+        <div><b>StoreSense</b><div class="brand-sub">Open new stores, faster</div></div>
+      </div>
+      <button class="search-btn" id="btn-search"><svg><use href="#i-search"/></svg>Find anyone<kbd>Ctrl K</kbd></button>
+      <nav class="tabs" id="tabs" role="tablist" aria-label="Pages">
+        <button data-tab="overview" class="on"><svg><use href="#i-home"/></svg>Home</button>
+        <button data-tab="feed"><svg><use href="#i-todo"/></svg>To-do</button>
+        <button data-tab="territories"><svg><use href="#i-area"/></svg>Territories</button>
+        <button data-tab="map"><svg><use href="#i-pin"/></svg>Map</button>
+        <button data-tab="onboarding"><svg><use href="#i-key"/></svg>Openings</button>
+        <button data-tab="ask"><svg><use href="#i-chat"/></svg>Ask</button>
+        <button data-tab="rules"><svg><use href="#i-book"/></svg>Rules</button>
+        <button data-tab="log"><svg><use href="#i-todo"/></svg>Log</button>
+      </nav>
+      <div class="side-foot">
+        <label class="btn primary block" for="file">Upload file<input id="file" type="file" accept=".xlsx,.xls,.csv" hidden></label>
+        <button class="btn block" id="btn-sample">Use sample</button>
+        <button class="btn ghost block sm" id="btn-template">Download sample</button>
+        <div class="theme-row"><span>Theme</span>
+          <div class="seg-ctl" id="theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
+        </div>
+        <button class="btn ghost sm" id="btn-keys">Keyboard shortcuts <kbd>?</kbd></button>
+      </div>
+    </aside>
+
+    <div class="content">
+      <header class="top">
+        <div class="navbtns"><button class="btn sm" id="nav-back" aria-label="Back" title="Back">‹</button><button class="btn sm" id="nav-fwd" aria-label="Forward" title="Forward">›</button></div>
+        <nav class="trail" id="trail" aria-label="Where you have been"></nav>
+        <label id="source" class="source-pill" for="file" title="Upload a new file"></label>
+      </header>
+      <main>
+        <div class="page-head">
+          <p class="eyebrow" id="page-eyebrow">Today</p>
+          <h1 id="page-title">Home</h1>
+          <p class="page-sub" id="page-sub">How every application is doing.</p>
+        </div>
+        <section id="view-overview" class="view on"></section>
+        <section id="view-feed" class="view"></section>
+        <section id="view-territories" class="view"></section>
+        <section id="view-map" class="view"></section>
+        <section id="view-onboarding" class="view"></section>
+        <section id="view-ask" class="view"></section>
+        <section id="view-rules" class="view"></section>
+        <section id="view-log" class="view"></section>
+      </main>
+      <footer class="foot" id="foot"></footer>
+    </div>
+  </div>
+
+  <div id="scrim" class="scrim"></div>
+  <aside id="drawer" class="drawer" aria-hidden="true"></aside>
+  <div id="hovercard" class="hovercard" role="tooltip"></div>
+  <div id="palette" class="palette" role="dialog" aria-modal="true" aria-label="Find anyone"><div class="pal-box"></div></div>
+  <div id="toast" class="toast" role="status"><span></span><button type="button"></button></div>
+  <button id="fab" class="fab" aria-label="Open the StoreSense assistant" title="Ask StoreSense"><svg><use href="#i-chat"/></svg><span>Ask</span></button>
+  <aside id="assist" class="assist" aria-hidden="true" aria-label="StoreSense assistant"></aside>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
