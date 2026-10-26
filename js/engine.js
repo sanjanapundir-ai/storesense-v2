@@ -205,11 +205,11 @@ export function run(data, settings = {}) {
     if (x.withdrawn) { set(x, 'declined', 'withdrawn', 'Withdrew the application'); continue; }
     if (x.duplicateOf) { set(x, 'declined', 'duplicate', `Duplicate of ${x.duplicateOf}`, [`The same person and pin code already applied as ${x.duplicateOf}; only that application is reviewed.`]); x.archived = true; continue; }
     const blocks = x.issues.filter(i => i.level === 'block');
-    if (blocks.length) { set(x, 'hold', 'missing-info', `On hold: ${blocks[0].text}`, blocks.map(b => `Hold because ${b.text}.`)); continue; }
+    if (blocks.length) { set(x, 'hold', 'missing-info', `Suggest hold: ${blocks[0].text}`, blocks.map(b => `Suggested hold because ${b.text}.`)); continue; }
     const store = storeByPin.get(x.pin);
     if (store) {
       set(x, 'declined', 'pin-conflict', `Pin conflict: ${store.id} already open in ${x.pin}`,
-        [`The brand never opens two stores in the same pin code, and ${store.id} (${store.city}, opened ${store.opened}) already serves ${x.pin}. Automatically archived.`]);
+        [`The brand never opens two stores in the same pin code, and ${store.id} (${store.city}, opened ${store.opened}) already serves ${x.pin}. Suggested for the archive.`]);
       x.archived = true; x.conflictStore = store;
       if (x.partner >= cfg.partnerBar) x.redirect = nearestFreePin(x, territories, storeByPin, new Set());
       continue;
@@ -451,9 +451,9 @@ function approve(x, cfg, asOf) {
   x.decision = c.length ? 'conditional' : 'approved';
   x.sub = c.length ? 'conditions' : 'outright';
   const t = x.territory;
-  x.headline = c.length ? `Approved with ${c.length} condition${c.length > 1 ? 's' : ''} — spot ${x.slotRank} of ${t.slots} in ${t.id}` : `Approved — spot ${x.slotRank} of ${t.slots} in ${t.id}`;
+  x.headline = c.length ? `Suggest approve with ${c.length} condition${c.length > 1 ? 's' : ''} — spot ${x.slotRank} of ${t.slots} in ${t.id}` : `Suggest approve — spot ${x.slotRank} of ${t.slots} in ${t.id}`;
   x.reasons = [
-    `Won spot ${x.slotRank} of ${t.slots} in ${t.id} (${t.city}, ${t.priority} priority) with combined score ${x.combined} (partner ${x.partner}, site ${x.site}).`,
+    `Ranks for spot ${x.slotRank} of ${t.slots} in ${t.id} (${t.city}, ${t.priority} priority) with combined score ${x.combined} (partner ${x.partner}, site ${x.site}).`,
     `Funding: can invest ${lakh(x.invest)} against ${lakh(x.needed)} needed (${pct(Math.min(x.coverage, 9.99))} covered). Payback about ${Math.round(x.payback)} months, inside the ${cfg.maxPayback}-month target.`,
     ...c.map(k => `Condition: ${k.text}.`),
   ];
@@ -491,7 +491,7 @@ export const MILESTONES = [
   { key: 'open', label: 'Store open', owner: 'Everyone' },
 ];
 
-function milestones(x, asOf) {
+export function milestones(x, asOf) {
   const open = x.timeline.date;
   const total = Math.max(30, Math.round((open - asOf) / 864e5));
   const at = f => addDays(asOf, Math.round(total * f));
@@ -547,7 +547,7 @@ function checks(res) {
     { ok: slotsOver.length === 0, text: `${winners.length} of ${totalSlots} spots filled` },
     { ok: pins.every(p => !storePins.has(p)), text: `${pins.filter(p => storePins.has(p)).length} next to our stores` },
     { ok: dupPins.length === 0, text: `${dupPins.length} double bookings` },
-    { ok: sum === live.length, text: `${sum} of ${live.length} decided` },
+    { ok: sum === live.length, text: `${sum} of ${live.length} have a suggestion` },
   ];
 }
 
@@ -557,8 +557,8 @@ function actions(res) {
     if (x.withdrawn) continue;
     const t = x.territory;
     const boost = (t && t.priority === 'High' ? 20 : t && t.priority === 'Medium' ? 8 : 0) + (x.compliant ? 10 : 0) + x.momentum * 0.3;
-    if (x.decision === 'approved') out.push({ x, kind: 'call', score: 100 + boost, title: `Call ${x.name} to say yes`, why: `Approved in ${t.id}${x.hot ? ' · can open fast' : ''}` });
-    else if (x.decision === 'conditional') out.push({ x, kind: 'call', score: 80 + boost, title: `Call ${x.name} about next steps`, why: x.conditions.map(c => c.text).slice(0, 2).join('; ') });
+    if (x.decision === 'approved') out.push({ x, kind: 'call', score: 100 + boost, title: `Review ${x.name}: suggested yes`, why: `Suggested for ${t.id}${x.hot ? ' · can open fast' : ''}` });
+    else if (x.decision === 'conditional') out.push({ x, kind: 'call', score: 80 + boost, title: `Review ${x.name}: suggested yes with conditions`, why: x.conditions.map(c => c.text).slice(0, 2).join('; ') });
     else if (x.decision === 'hold') out.push({ x, kind: 'info', score: 50 + x.partner * 0.2 + (t?.priority === 'High' ? 10 : 0), title: `Ask ${x.name} for missing info`, why: x.issues.find(i => i.level === 'block').text });
     else if (x.decision === 'waitlist' && x.redirect && x.partner >= 65) out.push({ x, kind: 'redirect', score: 40 + boost, title: `Offer ${x.name} a nearby spot`, why: `${x.headline}; ${x.redirect.territory.id} has a free pin ${r1(x.redirect.km)} km away` });
   }
@@ -657,6 +657,28 @@ export function siteInsight(x, res) {
       ['Similar shops nearby', String(x.competitors), `${(t.capture * 100).toFixed(1)}% of people passing walk in`],
     ],
   };
+}
+
+// Portfolio view of the traffic model: busiest suggested sites, thin margins, stores that could lose visitors, per-area totals
+export function trafficSummary(res) {
+  const memo = res._traffic; if (memo) return memo;
+  const sites = res.apps.filter(a => a.bucket === 'ready').map(a => ({ a, t: siteInsight(a, res) })).filter(x => x.t);
+  const busiest = [...sites].sort((x, y) => y.t.visitors - x.t.visitors);
+  const thin = sites.filter(x => x.t.cushion < 1.5).sort((x, y) => x.t.cushion - y.t.cushion);
+  const loss = new Map();
+  for (const { a, t } of sites) {
+    const o = t.overlap; if (!o.store || !o.fromStore) continue;
+    const e = loss.get(o.store.id) || { id: o.store.id, pin: o.store.pin, visitors: o.store.visitors, lost: 0, by: [] };
+    e.lost += o.fromStore; e.by.push(a); loss.set(o.store.id, e);
+  }
+  const byTer = new Map();
+  for (const { a, t } of sites) {
+    if (!a.territory) continue;
+    const e = byTer.get(a.territory.id) || { visitors: 0, buyers: 0, n: 0 };
+    e.visitors += t.visitors; e.buyers += t.buyers; e.n++; byTer.set(a.territory.id, e);
+  }
+  const total = sites.reduce((n, x) => n + x.t.visitors, 0);
+  return (res._traffic = { sites, busiest, thin, stores: [...loss.values()].sort((x, y) => y.lost - x.lost), byTer, total, buyers: sites.reduce((n, x) => n + x.t.buyers, 0) });
 }
 
 export { cityKey };

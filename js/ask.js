@@ -1,13 +1,15 @@
 // ask.js — "Ask StoreSense". Reads a plain-language question with fixed patterns,
 // applies any new information to the data, re-runs the rulebook, and explains
-// what changed. Rules decide; this file only reads the question and writes answers.
+// what changed. Rules suggest and people decide; this file only reads the question and writes answers.
 import { normFloor, parseLakh } from './parse.js';
-import { lakh, fmtDate, PART_LABEL, WEIGHTS, siteInsight } from './engine.js';
+import { lakh, fmtDate, PART_LABEL, WEIGHTS, siteInsight, trafficSummary } from './engine.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const r1 = n => Math.round(n * 10) / 10;
 
-export const DECISION_LABEL = { approved: 'Approved', conditional: 'Approved with conditions', hold: 'On hold', waitlist: 'Waitlist', declined: 'Declined' };
+export const DECISION_LABEL = { approved: 'Suggest approve', conditional: 'Suggest approve with conditions', hold: 'Suggest hold', waitlist: 'Suggest waitlist', declined: 'Suggest decline' };
+export const FINAL_LABEL = { approved: 'Approved', conditional: 'Approved with conditions', hold: 'On hold', waitlist: 'Waitlisted', declined: 'Declined' };
+let HUMAN = {};
 
 function findIds(q, result) {
   const ids = new Set();
@@ -103,7 +105,9 @@ function terEdits(q, t) {
 export function explain(x, res) {
   const cfg = res.cfg;
   const tag = `<span class="pill d-${x.decision}">${DECISION_LABEL[x.decision]}</span>`;
+  const hd = HUMAN[x.id];
   let h = `<p><b>${esc(x.id)} · ${esc(x.name)}</b> ${tag}</p><p>${esc(x.headline)}.</p>`;
+  h += hd ? `<p class="ask-sub">Your decision</p><p><b>${FINAL_LABEL[hd.d]}</b> by ${esc(hd.by || 'a reviewer')} on ${fmtDate(new Date(hd.at))}${hd.d === x.decision ? ' (agrees with the suggestion)' : ` (changed from the suggestion${hd.note ? `: “${esc(hd.note)}”` : ''})`}.</p>` : `<p class="small">This is a suggestion. Nobody has made the final decision yet; record it on <a class="lnk" data-go="app/${x.id}">the profile</a>.</p>`;
   if (x.reasons?.length) h += `<p class="ask-sub">Why</p><ul>${x.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>`;
   if (!x.withdrawn && x.decision !== 'hold' && x.parts) {
     h += `<p class="ask-sub">Numbers</p><ul>
@@ -124,7 +128,7 @@ export function nextSteps(x, res) {
     const pos = x.territory ? x.territory.waitlist.indexOf(x) : -1;
     return `<ul>${pos >= 0 ? `<li>Position ${pos + 1} on the ${esc(x.territory.id)} waitlist.</li>` : ''}${x.redirect ? `<li>Offer pin ${x.redirect.pin} in ${esc(x.redirect.territory.id)} (${r1(x.redirect.km)} km away).</li>` : ''}<li>Nurture: ${esc(nurtureAdvice(x))}</li></ul>`;
   }
-  if (x.archived && x.redirect) return `<ul><li>Archived. A strong partner, so the archive note offers pin ${x.redirect.pin} in ${esc(x.redirect.territory.id)} if they want to re-apply.</li></ul>`;
+  if (x.archived && x.redirect) return `<ul><li>Suggested for the archive. A strong partner, so the archive note offers pin ${x.redirect.pin} in ${esc(x.redirect.territory.id)} if they want to re-apply.</li></ul>`;
   return `<ul><li>${x.withdrawn ? 'No action.' : 'Send a polite decline with the reason; they can re-apply later.'}</li></ul>`;
 }
 
@@ -256,7 +260,7 @@ function askCore(q, ctx) {
     if (/how many|count|summary|overview|total/.test(s) && !/list|show|who/.test(s)) return { html: `<p>${city ? esc(city) + ': ' : ''}${counts}.</p>` };
     return { html: `<p>${pool.length} ${dec ? DECISION_LABEL[dec].toLowerCase() : ''} ${city ? 'in ' + esc(city) : ''}:</p><ul>${pool.slice(0, 25).map(a => `<li><b>${esc(a.id)}</b> ${esc(a.name)} — ${esc(a.headline)}</li>`).join('')}${pool.length > 25 ? `<li>…and ${pool.length - 25} more (see Applications).</li>` : ''}</ul>` };
   }
-  if (/rule|how.*decide|ai|why trust/.test(s)) return { html: '<p>Every decision comes from fixed rules in a fixed order: data check → pin-code knockout → partner score bar → funding floor → territory match → fundability (funding, payback, experience, demographics) → slot allocation by combined score, one store per pin. The same file always gives the same answer. This assistant only reads your question and explains the result; it never decides.</p>' };
+  if (/rule|how.*decide|ai|why trust/.test(s)) return { html: '<p>Every suggestion comes from fixed rules in a fixed order: data check → pin-code knockout → partner score bar → funding floor → territory match → fundability (funding, payback, experience, demographics) → slot allocation by combined score, one store per pin. The same file always gives the same answer. A person makes the final decision on each profile; this assistant only reads your question and explains the suggestion.</p>' };
   return { html: `<p>I couldn't match that to an applicant, territory, number or rule, so I won't guess.</p>${HELP}`, unknown: true };
 }
 
@@ -276,10 +280,13 @@ const GLOSSARY = {
   'speed': 'How fast they can open: owning or renting a shop and a short launch time score highest.',
   'on hold': 'Something important is missing or contradictory (like the pin code or the money). We ask for it; nothing is decided until then.',
   'waitlist': 'A good applicant without a spot yet: the area is full, outside our areas, or money or site is not ready. First in line when things change.',
-  'declined': 'Below the minimums, or a store already exists in that pin code. They can apply again later.',
-  'approved': 'Got a spot with nothing left to fix. Onboarding can start.',
-  'conditions': 'Approved, but with a to-do and a deadline first, such as closing a small money gap or finding a shop.',
-  'ready to call': 'Everyone approved, with or without conditions.',
+  'declined': 'The rules suggest no: below the minimums, or a store already exists in that pin code. A person confirms it on the profile; they can apply again later.',
+  'approved': 'The rules suggest yes with nothing left to fix. A person confirms it on the profile before onboarding starts.',
+  'conditions': 'The rules suggest yes, but with a to-do and a deadline first, such as closing a small money gap or finding a shop.',
+  'suggested yes': 'Everyone the rules suggest saying yes to, with or without conditions. A person makes the final call.',
+  'ready to call': 'Old name for "suggested yes": everyone the rules suggest saying yes to. A person makes the final call.',
+  'suggestion': 'What the rules recommend for an applicant. It is never final: a person accepts or changes it on the profile, with a reason when they change it.',
+  'final decision': 'The decision a person records on the profile. Only final decisions start onboarding, messages and exports.',
   'keep warm': 'People on hold or on the waitlist. Each one has a named next step.',
   'not now': 'Declined applications, kept for the record.',
   'city tier': 'Rough city size: Tier 1 = big metros, Tier 2 = mid-size cities, Tier 3 = smaller towns.',
@@ -309,8 +316,8 @@ function filtersFrom(q, result) {
   if (ter) { f.ter = ter.id; f.label.push(`in ${ter.id}`); }
   const tier = /tier\s*1|big cit|metro/.test(s) ? 1 : /tier\s*2|mid/.test(s) ? 2 : /tier\s*3|small town/.test(s) ? 3 : null;
   if (tier) { f.tier = tier; f.label.push(['', 'in big cities', 'in mid cities', 'in small towns'][tier]); }
-  const dec = /with condition|conditional/.test(s) ? 'conditional' : /ready to call|approved|winners?/.test(s) ? 'ready' : /on hold|\bhold\b/.test(s) ? 'hold' : /wait|keep warm|nurture/.test(s) ? 'waitlist' : /declin|reject|not now/.test(s) ? 'declined' : null;
-  if (dec) { f.dec = dec; f.label.push(dec === 'ready' ? 'ready to call' : DECISION_LABEL[dec].toLowerCase()); }
+  const dec = /with condition|conditional/.test(s) ? 'conditional' : /ready to call|suggested yes|approved|winners?/.test(s) ? 'ready' : /on hold|\bhold\b/.test(s) ? 'hold' : /wait|keep warm|nurture/.test(s) ? 'waitlist' : /declin|reject|not now/.test(s) ? 'declined' : null;
+  if (dec) { f.dec = dec; f.label.push(dec === 'ready' ? 'suggested yes' : DECISION_LABEL[dec].toLowerCase()); }
   return f;
 }
 function applyF(apps, f) {
@@ -356,7 +363,13 @@ export function insights(res) {
   const out = [], apps = res.apps, n = d => apps.filter(a => a.decision === d).length;
   const ready = apps.filter(a => a.bucket === 'ready');
   const top = [...ready].sort((a, b) => b.combined - a.combined)[0];
-  out.push({ text: `${ready.length} ready to call (${n('approved')} approved, ${n('conditional')} with conditions).${top ? ` Strongest: ${top.name} (${top.id}).` : ''}`, go: 'feed?bucket=ready' });
+  out.push({ text: `${ready.length} suggested yes (${n('approved')} approve, ${n('conditional')} with conditions).${top ? ` Strongest: ${top.name} (${top.id}).` : ''}`, go: 'feed?bucket=ready' });
+  const decided = apps.filter(a => HUMAN[a.id]), pend = apps.filter(a => !HUMAN[a.id] && !a.withdrawn);
+  out.push({ text: decided.length ? `You have decided ${decided.length}; ${decided.filter(a => HUMAN[a.id].d !== a.decision).length} differ from the suggestion. ${pend.length} still await your decision.` : `No final decisions yet. All ${pend.length} suggestions await a person's decision.`, go: 'feed?human=pending' });
+  const tr = trafficSummary(res);
+  if (tr.busiest.length) { const b = tr.busiest[0]; out.push({ text: `Busiest suggested site: ${b.a.name} (${b.a.id}), about ${b.t.visitors} visitors a day at pin ${b.a.pin}. All ${tr.sites.length} suggested sites together: about ${tr.total.toLocaleString('en-IN')} a day.`, go: `app/${b.a.id}` }); }
+  if (tr.thin.length) out.push({ text: `${tr.thin.length} suggested site${tr.thin.length > 1 ? 's have' : ' has'} thin traffic: under 1.5× the visitors needed to break even. Thinnest: ${tr.thin[0].a.id} (${tr.thin[0].t.cushion.toFixed(1)}×).`, go: `app/${tr.thin[0].a.id}` });
+  if (tr.stores.length) out.push({ text: `${tr.stores.length} of our stores could lose visitors to new sites; most: ${tr.stores[0].id} (about ${tr.stores[0].lost} a day).`, go: `map?store=${tr.stores[0].id}` });
   const gaps = res.territories.filter(t => t.needsLeads);
   if (gaps.length) out.push({ text: `${gaps.length} area${gaps.length > 1 ? 's need' : ' needs'} partners: ${gaps.map(t => `${t.id} ${t.city} (${t.open} empty)`).join(', ')}.`, go: `territories/${gaps[0].id}` });
   const stops = res.funnel.stages.filter(s => s.out).sort((a, b) => b.out - a.out)[0];
@@ -383,8 +396,8 @@ export function suggestionsFor(tab, res, openId) {
   if (openId) { const x = res.apps.find(a => a.id === openId); if (x) s.push(`Why is ${x.id} ${x.decision === 'hold' ? 'on hold' : DECISION_LABEL[x.decision].toLowerCase()}?`, `What is ${x.id}'s payback?`, `Next steps for ${x.id}`); }
   const hold = res.apps.find(a => a.decision === 'hold'), wl = res.apps.find(a => a.decision === 'waitlist' && a.territory);
   const by = {
-    overview: ['What should I do today?', 'Which territories need partners?', 'How many are ready to call?'],
-    feed: ['Top 5 partners', 'Average money ready to call', 'Who can open fastest?'],
+    overview: ['What should I do today?', 'Which territories need partners?', 'How many await my decision?'],
+    feed: ['Top 5 partners', 'Traffic insights', 'Who can open fastest?'],
     territories: ['Which territory has the most applicants?', 'Which territories need partners?', res.territories[0] ? `Explain ${res.territories[0].id}` : ''],
     map: ['Show Mysuru on the map', 'Take me to All India', 'Which city has the most applicants?'],
     onboarding: ['What happens after approval?', 'What does onboarding mean?', 'Who can open fastest?'],
@@ -400,6 +413,7 @@ function sourceLine(result) {
 }
 
 export function ask(q, ctx) {
+  HUMAN = ctx.human || {};
   const out = askSmart(q, ctx);
   if (out.html && !out.undo && !out.reset && !out.help && !out.nav && !out.unknown && !out.plain) out.html += sourceLine(out.result || ctx.result);
   return out;
@@ -463,6 +477,27 @@ function askSmart(q, ctx) {
     return { html: `<table class="t"><tr><th></th>${xs.map(x => `<th><a class="lnk" data-go="app/${x.id}">${esc(x.id)}</a><br>${esc(x.name)}</th>`).join('')}</tr>${rows.map(([l, f]) => `<tr><td>${l}</td>${xs.map(x => `<td>${esc(String(f(x)))}</td>`).join('')}</tr>`).join('')}</table>${best ? `<p>Higher combined score: <b>${esc(best.name)}</b> (${best.combined}). In the same area, the higher combined score gets the spot first.</p>` : ''}` };
   }
 
+  // 5b. Your decisions: "how many await my decision", "what have I decided"
+  if (!ids.length && /(await|pending|waiting|not (yet )?decided|undecided).*(decision|you|me)|my decisions?|decided|final decisions?|overrid|changed the suggestion/.test(s)) {
+    const pend = result.apps.filter(a => !HUMAN[a.id] && !a.withdrawn), dec = result.apps.filter(a => HUMAN[a.id]), diff = dec.filter(a => HUMAN[a.id].d !== a.decision);
+    const byD = Object.keys(FINAL_LABEL).map(d => [d, dec.filter(a => HUMAN[a.id].d === d).length]).filter(([, n]) => n);
+    return { html: `<p><b>${pend.length}</b> suggestion${pend.length === 1 ? '' : 's'} await a person's decision (${pend.filter(a => a.bucket === 'ready').length} of them suggested yes). <a class="lnk" data-go="feed?human=pending">See them</a></p>${dec.length ? `<p><b>${dec.length}</b> decided: ${byD.map(([d, n]) => `${n} ${FINAL_LABEL[d].toLowerCase()}`).join(', ')}. ${diff.length ? `<a class="lnk" data-go="feed?human=changed">${diff.length} differ from the suggestion</a>.` : 'All agree with the suggestion.'}</p>` : '<p>No final decisions recorded yet. StoreSense only suggests; open a profile to decide.</p>'}` };
+  }
+
+  // 5c. Traffic across all suggested sites: "traffic insights", "which site has the most traffic"
+  if (!ids.length && /traffic|footfall|visitors|walk-?ins?|busiest|cannibal/.test(s)) {
+    const tr = trafficSummary(result);
+    if (!tr.sites.length) return { html: '<p>No suggested-yes sites to estimate traffic for.</p>' };
+    const row = ({ a, t }) => `<li><a class="lnk" data-go="app/${a.id}">${esc(a.name)}</a> (${a.id}, pin ${esc(String(a.pin))}): about <b>${t.visitors}</b> visitors a day, ${t.buyers} buyers, ${t.cushion.toFixed(1)}× break-even</li>`;
+    const quiet = [...tr.busiest].reverse().slice(0, 3);
+    return { html: `<p>Estimated daily traffic at the ${tr.sites.length} suggested-yes sites: about <b>${tr.total.toLocaleString('en-IN')}</b> visitors and ${tr.buyers.toLocaleString('en-IN')} buyers a day once settled.</p>
+      <p class="ask-sub">Busiest</p><ol>${tr.busiest.slice(0, 3).map(row).join('')}</ol>
+      <p class="ask-sub">Quietest</p><ol>${quiet.map(row).join('')}</ol>
+      ${tr.thin.length ? `<p class="ask-sub">Thin margin (under 1.5× break-even)</p><ul>${tr.thin.slice(0, 5).map(row).join('')}</ul>` : '<p>Every suggested site clears break-even by at least 1.5×.</p>'}
+      ${tr.stores.length ? `<p class="ask-sub">Our stores that could lose visitors</p><ul>${tr.stores.slice(0, 4).map(e => `<li><a class="lnk" data-go="map?store=${e.id}">${e.id}</a> (pin ${esc(e.pin)}): about ${e.lost} a day to ${e.by.map(a => a.id).join(', ')}</li>`).join('')}</ul>` : '<p>No suggested site is close enough to share visitors with one of our stores.</p>'}
+      <p class="small muted">Worked backwards from each site's sales estimate (average bill, ${Math.round(0.35 * 100)}% of visitors buying). The file has no footfall counts, so these are estimates.</p>` };
+  }
+
   // 6. One fact about one applicant: "What is APP-012's payback?"
   const asking = /^(what|what's|how|where|when|which|who|is|are|does|do|can|tell|show|give)\b/.test(s) || /\?\s*$/.test(q);
   if (ids.length === 1 && asking && !/^why\b|explain|next step|^(apply|set|make)\b/.test(s)) {
@@ -493,13 +528,13 @@ function askSmart(q, ctx) {
     const groups = byCity ? [...new Set(result.apps.map(a => a.cityName))].map(c => ({ id: c, n: result.apps.filter(a => a.cityName === c).length, ready: result.apps.filter(a => a.cityName === c && a.bucket === 'ready').length, open: result.territories.filter(t => t.city === c).reduce((x, t) => x + Math.max(0, t.open), 0), go: `map?city=${encodeURIComponent(c)}` }))
       : result.territories.map(t => ({ id: `${t.id} ${t.city}`, n: t.applicants, ready: t.winners.length, open: t.open, go: `territories/${t.id}` }));
     const key = /empty|open|spot|slot/.test(s) ? 'open' : /ready|approved/.test(s) ? 'ready' : 'n';
-    const lab = { open: 'empty spots', ready: 'ready to call', n: 'applicants' }[key];
+    const lab = { open: 'empty spots', ready: 'suggested yes', n: 'applicants' }[key];
     groups.sort((a, b) => (/least|fewest|no /.test(s) ? a[key] - b[key] : b[key] - a[key]));
     return { html: `<p>${/least|fewest|no /.test(s) ? 'Fewest' : 'Most'} ${lab}:</p><ol>${groups.slice(0, 5).map(g => `<li><a class="lnk" data-go="${g.go}">${esc(g.id)}</a> — ${g[key]} ${lab}</li>`).join('')}</ol>` };
   }
   if (/fastest|soonest|quickest|open (first|quickly|fast)/.test(s)) {
     const pool = result.apps.filter(a => a.bucket === 'ready' && a.timeline).sort((a, b) => a.timeline.date - b.timeline.date).slice(0, 6);
-    return { html: `<p>Earliest realistic openings among people ready to call:</p><ol>${pool.map(a => `<li><a class="lnk" data-go="app/${a.id}">${esc(a.name)}</a> — ${fmtDate(a.timeline.date)} (${esc(a.spaceStd.toLowerCase())})</li>`).join('')}</ol>` };
+    return { html: `<p>Earliest realistic openings among people suggested yes:</p><ol>${pool.map(a => `<li><a class="lnk" data-go="app/${a.id}">${esc(a.name)}</a> — ${fmtDate(a.timeline.date)} (${esc(a.spaceStd.toLowerCase())})</li>`).join('')}</ol>` };
   }
   if (/^how many\b/.test(s) && !/stores|outlets|territor|spots|slots/.test(s) && !ids.length) {
     const f = filtersFrom(q, result), pool = applyF(result.apps, f);

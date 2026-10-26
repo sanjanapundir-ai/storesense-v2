@@ -7,7 +7,9 @@ Franchise partner acquisition, geo-selection and onboarding engine (AI x Ops Hac
 ## What it does
 
 - **Reads any file.** Excel or CSV, sheets in any order with any reasonable names. Columns are recognised from many wordings ("Budget (INR)", "Postal codes", "Outlet Code"…), and values are cleaned: ₹25,00,000, 2.5 Cr, "30-40 lakh", "ASAP", "Q1 2027", pin ranges and prefixes like `110*`. "How we read your file" on Home shows every assumption made.
-- **Decides with fixed rules, never AI.** Eight steps in a fixed order: info check → one store per pin code → partner score → money floor → territory match by pin → ready to fund (money, payback, experience, households) → spots by combined score → approved or approved with conditions. The same file always gives the same answer.
+- **Suggests with fixed rules, never AI. A person decides.** Eight steps in a fixed order: info check → one store per pin code → partner score → money floor → territory match by pin → ready to fund (money, payback, experience, households) → spots by combined score → suggest approve or approve with conditions. The same file always gives the same suggestion.
+- **Human final decision.** Every profile has a "Your decision" panel: accept the suggestion or pick another outcome (a reason is required when you go against it), with your name and date. Messages, onboarding, and the HubSpot export use only the decision a person recorded. To-do filters by "Awaiting you / Decided", with a confirmed bulk accept.
+- **Traffic insights.** Estimated visitors and buyers a day for every suggested site, break-even traffic and cushion, our stores that could lose visitors, and totals per territory, on Home, on each profile and in the assistant.
 - **Works anywhere in India.** Every 6-digit pin resolves to its state. About 100 cities have known centres, and pins can be made exact from OpenStreetMap.
 - **Explains everything.** Each applicant has a step-by-step decision path, money and payback breakdown, location checks, timeline and onboarding milestones.
 
@@ -16,7 +18,7 @@ Franchise partner acquisition, geo-selection and onboarding engine (AI x Ops Hac
 | Page | What's there |
 |---|---|
 | Home | Welcome and Google-style search (people, pins, cities, territories or a question), enquiry form scored live, every applicant as an animated dot, funnel, today's actions, rules panel with presets and a "who changed" list, insights |
-| To-do | Ready to call / Keep warm / Not now, clickable filters, side drawer with one-click messages in the applicant's language |
+| To-do | Suggested yes / Keep warm / Suggested no, awaiting-you filter, bulk accept, clickable filters, side drawer with one-click messages in the applicant's language |
 | Territories | Spots, winners, waitlists, empty pins, co-investor pairs |
 | Map | 3D map of India (MapLibre + OpenFreeMap, no key) with store towers, catchment rings and a demand heat layer, plus a Google Maps panel that follows your clicks |
 | Openings | Drag-and-drop onboarding board |
@@ -45,4 +47,4 @@ Open http://localhost:5178. No build step.
 - `js/app.js` — the interface
 - `js/_test*.js` — `node js/_test.js "Why is APP-007 on hold?"` and friends
 
-Enquiries, notes, ticks and the activity log are saved in each viewer's own browser only.
+Decisions, enquiries, notes, ticks and the activity log are saved in each viewer's own browser only.

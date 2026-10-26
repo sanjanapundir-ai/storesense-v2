@@ -1,6 +1,6 @@
 // app.js — the expansion team's operating screen. All decisions come from engine.js.
 import { parseWorkbook } from './parse.js';
-import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES, siteInsight, TRAFFIC } from './engine.js';
+import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES, siteInsight, TRAFFIC, trafficSummary, milestones as planMilestones } from './engine.js';
 import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
 import { pinPoint, refinePins, cityInfo, cityForPin, stateForPin, pinPlace, fetchPlaces } from './geo.js';
@@ -11,9 +11,10 @@ const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const r1 = n => Math.round(n * 10) / 10;
 const DEC = ['approved', 'conditional', 'hold', 'waitlist', 'declined'];
-const DEC_LEG = { approved: 'Approved', conditional: 'With conditions', hold: 'On hold', waitlist: 'Waitlist', declined: 'Declined' };
-const DEC_SHORT = { approved: 'Approved', conditional: 'Approved with conditions', hold: 'On hold', waitlist: 'Waitlist', declined: 'Declined' };
-const BUCKET = { ready: 'Ready to call', nurture: 'Keep warm', unqualified: 'Not now' };
+const DEC_LEG = { approved: 'Approve', conditional: 'With conditions', hold: 'Hold', waitlist: 'Waitlist', declined: 'Decline' };
+const DEC_SHORT = { approved: 'Suggest: approve', conditional: 'Suggest: approve with conditions', hold: 'Suggest: hold', waitlist: 'Suggest: waitlist', declined: 'Suggest: decline' };
+const FINAL = { approved: 'Approved', conditional: 'Approved with conditions', hold: 'On hold', waitlist: 'Waitlisted', declined: 'Declined' };
+const BUCKET = { ready: 'Suggested yes', nurture: 'Keep warm', unqualified: 'Suggested no' };
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 let colorCache = {};
 const colr = v => (colorCache[v] ||= css(v));
@@ -32,6 +33,7 @@ const S = {
   trail: [], page: 'overview',
   chat: [], progress: store.get('storesense.progress', {}), openId: null,
   log: store.get('storesense.log', []), notes: store.get('storesense.notes', []), inquiries: store.get('storesense.inquiries', []),
+  decisions: store.get('storesense.decisions', {}), reviewer: store.get('storesense.reviewer', ''),
 };
 
 // ---------------- data in ----------------
@@ -92,12 +94,12 @@ $('#tabs').addEventListener('click', e => {
 const PAGES = {
   overview: ['Today', 'Home', 'How every application is doing.'],
   log: ['Records', 'Activity log', 'Every search, question, enquiry and change, newest first.'],
-  feed: ['Your list', 'To-do', 'Who to call and what to send.'],
+  feed: ['Your list', 'To-do', 'Suggestions waiting for your decision.'],
   territories: ['Where we grow', 'Territories', 'Areas where we want new stores.'],
   map: ['Where we grow', 'Map', 'Stores, applicants and demand.'],
   onboarding: ['New stores', 'Openings', 'Steps to open each new store. Drag a card to move it.'],
   ask: ['Help', 'Ask', 'Ask a question in plain words.'],
-  rules: ['How it works', 'Rules', 'How every decision is made.'],
+  rules: ['How it works', 'Rules', 'How every suggestion is made. A person makes the final call.'],
 };
 function showTab(t) {
   S.tab = t;
@@ -114,7 +116,7 @@ function renderAll() {
   const res = S.result;
   $('#source').textContent = `${S.source} · ${res.apps.length} applications · ${res.territories.length} territories · ${res.stores.length} stores`;
   $('#source').title = $('#source').textContent;
-  const ready = res.apps.filter(a => a.bucket === 'ready').length;
+  const ready = res.apps.filter(a => a.bucket === 'ready' && !S.decisions[a.id]).length;
   const tb = $('#tabs [data-tab=feed]');
   (tb.querySelector('.count') || tb.appendChild(Object.assign(document.createElement('span'), { className: 'count' }))).textContent = ready;
   renderFoot();
@@ -176,6 +178,7 @@ function renderOverview() {
         <div class="card"><div class="card-h"><h2>Find more partners here</h2><span class="muted">Empty spots</span></div><div id="ov-gaps"></div></div>
         <div class="card"><div class="card-h"><h2>Insights</h2><span class="muted">From your data</span></div><ul class="insights" id="ov-insights"></ul></div>
       </div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><h2>Traffic insights</h2><span class="muted">Estimated visitors a day at suggested-yes sites</span></div><div id="ov-traffic"></div></div>
       <div class="grid g-2" style="margin-top:16px">
         <div class="card"><div class="card-h"><h2>Money people can invest</h2><span class="muted">₹ lakh · by city size</span></div><div class="chart" id="ov-capital"></div><div id="ov-capital-note" class="small muted"></div></div>
         <div class="card"><div class="card-h"><h2>Years running a shop</h2><span class="muted">All applicants</span></div><div class="chart" id="ov-exp"></div><div id="ov-exp-note" class="small muted"></div></div>
@@ -272,6 +275,25 @@ function updateRules() {
   $$('#presets button').forEach(b => b.classList.toggle('on', Object.entries(PRESETS[b.dataset.p]).every(([k, v]) => k === 'label' || JSON.stringify(S.settings[k]) === JSON.stringify(v))));
   // Insights
   $('#ov-insights').innerHTML = insights(res).map(i => `<li><a class="lnk" data-go="${i.go}">${esc(i.text)}</a></li>`).join('');
+  $('#ov-traffic').innerHTML = trafficCard(res);
+}
+function trafficCard(res) {
+  const tr = trafficSummary(res);
+  if (!tr.sites.length) return empty('No suggested-yes sites to estimate traffic for.');
+  const max = tr.busiest[0].t.visitors;
+  const row = ({ a, t }) => `<a class="tr-row lnk" data-go="app/${a.id}" title="${esc(`${a.name}: about ${t.visitors} visitors and ${t.buyers} buyers a day; break-even needs ${t.breakEven}`)}"><span class="tr-n"><b>${esc(a.name)}</b><span class="muted">${a.id} · pin ${a.pin}${pinPlace(a.pin) ? ` · ${esc(pinPlace(a.pin).name)}` : ''}</span></span><span class="tr-bar"><i style="width:${Math.round(100 * t.visitors / max)}%"></i><s style="left:${Math.min(100, Math.round(100 * t.breakEven / max))}%" title="Break-even"></s></span><span class="tr-v"><b>${t.visitors}</b>/day<span class="${t.cushion < 1.5 ? 'warn-txt' : 'muted'}">${t.cushion.toFixed(1)}×</span></span></a>`;
+  return `<div class="tr-kpis">
+      <div><span class="muted small">All suggested sites</span><b>${tr.total.toLocaleString('en-IN')}</b><span class="small muted">visitors a day once settled</span></div>
+      <div><span class="muted small">Buyers</span><b>${tr.buyers.toLocaleString('en-IN')}</b><span class="small muted">a day · ${Math.round(100 * TRAFFIC.conversion)}% of visitors</span></div>
+      <div><span class="muted small">Thin margin</span><b>${tr.thin.length}</b><span class="small muted">under 1.5× break-even traffic</span></div>
+      <div><span class="muted small">Our stores sharing visitors</span><b>${tr.stores.length}</b><span class="small muted">${tr.stores[0] ? `most: ${tr.stores[0].id}, about ${tr.stores[0].lost}/day` : 'none close enough'}</span></div>
+    </div>
+    <div class="grid g-2 tr-cols">
+      <div><h3 class="small-h">Busiest</h3>${tr.busiest.slice(0, 5).map(row).join('')}</div>
+      <div><h3 class="small-h">${tr.thin.length ? 'Thinnest margin' : 'Quietest'}</h3>${(tr.thin.length ? tr.thin : [...tr.busiest].reverse()).slice(0, 5).map(row).join('')}</div>
+    </div>
+    ${tr.stores.length ? `<p class="small">Could lose visitors: ${tr.stores.slice(0, 4).map(e => `<a class="lnk" data-go="map?store=${e.id}">${e.id}</a> about ${e.lost}/day to ${e.by.map(a => `<a class="lnk" data-go="app/${a.id}">${a.id}</a>`).join(', ')}`).join(' · ')}</p>` : ''}
+    <p class="small muted">Bar = visitors a day; the line marks break-even. Estimated from each site's sales, average bill and nearby shops — the file has no footfall counts. Open a person for the full breakdown.</p>`;
 }
 function median(v) { const a = v.filter(x => x != null && isFinite(x)).sort((x, y) => x - y); if (!a.length) return 0; const m = Math.floor(a.length / 2); return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
 
@@ -282,7 +304,8 @@ function updateOverview() {
   const n = k => f.outcome.find(o => o.key === k).n;
   const ready = n('approved') + n('conditional');
   $('#ov-kpis').innerHTML = [
-    ['ready', 'Ready to call', ready, `${n('approved')} approved · ${n('conditional')} with conditions`, 'var(--d-approved)'],
+    ['ready', 'Suggested yes', ready, `${n('approved')} approve · ${n('conditional')} with conditions`, 'var(--d-approved)'],
+    ['human:pending', 'Awaiting your decision', res.apps.filter(a => !S.decisions[a.id] && !a.withdrawn).length, `${Object.keys(S.decisions).length} decided · ${res.apps.filter(a => humanYes(a)).length} approved by you`, 'var(--accent)'],
     ['nurture:hold', 'On hold', n('hold'), 'Need more info', 'var(--d-hold)'],
     ['nurture:waitlist', 'Waitlist', n('waitlist'), 'Good, but no spot yet', 'var(--d-waitlist)'],
     ['unqualified', 'Declined', n('declined'), `${res.apps.filter(a => a.sub === 'pin-conflict').length} where we already have a store`, 'var(--d-declined)'],
@@ -350,6 +373,7 @@ function updateOverview() {
 
 function goFeed(t) {
   const [b, sub] = t.split(':');
+  if (b === 'human') return go(`feed?human=${sub}`);
   if (b === 'territories') return go('territories');
   go(`feed?bucket=${b}${sub ? `&sub=${sub}` : ''}`);
 }
@@ -412,7 +436,7 @@ function drawExp() {
   bins.forEach((b, i) => {
     const h = (b.length / maxN) * (H - padB - top), xx = padL + i * bw + 2;
     const below = i < S.settings.minExp;
-    g += `<rect x="${xx}" y="${H - padB - h}" width="${bw - 4}" height="${Math.max(0, h)}" rx="4" fill="${below ? css('--muted') : css('--accent')}" opacity="${below ? .45 : .9}" data-tip="${i === 10 ? '10+' : i} yrs: <b>${b.length}</b> applicants<br>${b.filter(a => a.bucket === 'ready').length} ready to call<br>Click to see them" data-go="feed?exp=${i}" class="clickable"/>`;
+    g += `<rect x="${xx}" y="${H - padB - h}" width="${bw - 4}" height="${Math.max(0, h)}" rx="4" fill="${below ? css('--muted') : css('--accent')}" opacity="${below ? .45 : .9}" data-tip="${i === 10 ? '10+' : i} yrs: <b>${b.length}</b> applicants<br>${b.filter(a => a.bucket === 'ready').length} suggested yes<br>Click to see them" data-go="feed?exp=${i}" class="clickable"/>`;
     g += `<text x="${xx + (bw - 4) / 2}" y="${H - 8}" text-anchor="middle">${i === 10 ? '10+' : i}</text>`;
   });
   $('#ov-exp').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Retail experience histogram">${g}</svg>`;
@@ -432,6 +456,7 @@ function feedItems() {
   const f = S.feed, res = S.result;
   const w = Object.entries(f.where || {});
   let xs = w.length ? res.apps.filter(a => w.every(([k, v]) => WHERE[k]?.test(a, v))) : res.apps.filter(a => a.bucket === f.bucket && matchSub(a, f.sub));
+  if (f.human && f.human !== 'all' && !f.where.human) xs = xs.filter(a => WHERE.human.test(a, f.human));
   if (f.q) { const q = f.q.toLowerCase(); xs = xs.filter(a => `${a.id} ${a.name} ${a.cityName} ${a.pin} ${a.territory?.id || ''} ${a.business}`.toLowerCase().includes(q)); }
   const prio = a => (a.territory && a.territory.open >= 0 ? { High: 30, Medium: 15, Low: 0 }[a.territory.priority] : 0) + (a.compliant ? 15 : 0) + a.momentum * 0.4 + a.combined * 0.3 + (a.decision === 'approved' ? 10 : 0);
   const key = { priority: prio, momentum: a => a.momentum * 10 + a.combined / 10, readiness: a => a.partner, combined: a => a.combined }[f.sort];
@@ -452,6 +477,8 @@ function renderFeed() {
       <input class="input" id="fq" type="search" placeholder="Search name, city or pin  ( / )" value="${esc(f.q)}" aria-label="Search applications">
       <div class="tools">
         <select class="input" id="fs" aria-label="Sort">${[['priority', 'Most important'], ['momentum', 'Fastest to open'], ['readiness', 'Best partner'], ['combined', 'Best overall']].map(([k, l]) => `<option value="${k}" ${f.sort === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="seg-ctl" id="hseg" title="Filter by your decisions">${[['all', 'All'], ['pending', 'Awaiting you'], ['decided', 'Decided']].map(([k, l]) => `<button data-h="${k}" class="${(f.where.human || f.human || 'all') === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <button class="btn" id="bulk" title="Record the suggested decision for everyone listed who has no decision yet">Accept suggestions</button>
         <button class="btn" id="hs-all">Download list</button>
       </div>
     </div>
@@ -466,6 +493,10 @@ function renderFeed() {
   $('#fs').onchange = e => { f.sort = e.target.value; renderFeed(); };
   $('#fmore') && ($('#fmore').onclick = () => { f.limit += 40; renderFeed(); });
   $('#hs-all').onclick = () => exportHubspot(items);
+  $$('#hseg button', v).forEach(b => b.onclick = () => { f.human = b.dataset.h; delete f.where.human; f.limit = 40; renderFeed(); });
+  const pend = items.filter(a => !S.decisions[a.id] && !a.withdrawn);
+  $('#bulk').textContent = `Accept suggestions (${pend.length})`; $('#bulk').disabled = !pend.length;
+  $('#bulk').onclick = () => confirmBulk(pend);
   $$('.row', v).forEach(r => {
     r.onclick = () => openDrawer(r.dataset.id);
     r.querySelector('[data-q=msg]').onclick = e => { e.stopPropagation(); openDrawer(r.dataset.id); $('#dr-info').click(); };
@@ -491,7 +522,7 @@ function rowHtml(a) {
     ${avatar(a)}
     <div>
       <div class="quick"><button data-q="msg" title="Write a message">Message</button><button data-q="ask" title="Ask why">Why?</button></div>
-      <div class="who"><b>${esc(a.name)}</b><span class="id">${esc(a.id)}</span><a class="pill d-${a.decision} lnk" data-go="feed?dec=${a.decision}">${DEC_SHORT[a.decision]}</a>${tags}</div>
+      <div class="who"><b>${esc(a.name)}</b><span class="id">${esc(a.id)}</span><a class="pill d-${a.decision} lnk" data-go="feed?dec=${a.decision}">${DEC_SHORT[a.decision]}</a>${finalPill(a)}${tags}</div>
       <div class="meta"><a class="lnk" data-go="map?city=${encodeURIComponent(a.cityName)}">${esc(a.cityName)}</a> ${a.pin ? pinLink(a.assignedPin || a.pin) : ''}${t ? ` · <a class="lnk" data-go="territories/${t.id}">${t.id}</a>` : ''} · ${lakh(a.invest)} · <a class="lnk" data-go="feed?exp=${Math.min(10, Math.floor(a.exp ?? 0))}">${a.exp ?? '—'} yrs in shops</a> · ${{ Owned: 'owns a shop', Rented: 'rents a shop', 'Not yet identified': 'no shop yet' }[a.spaceStd]} · open in ${a.launchUsed} mo</div>
       <div class="why">${linkText(a.headline)}</div>
     </div>
@@ -565,6 +596,75 @@ function trafficHtml(a) {
   </div>`;
 }
 
+
+// ---------------- human decisions: StoreSense suggests, a person decides ----------------
+const humanYes = a => ['approved', 'conditional'].includes(S.decisions[a.id]?.d);
+function planFor(a) {
+  if (a.milestones) return a.milestones;
+  if (!humanYes(a) || !a.timeline) return null;
+  a.milestones = planMilestones(a, S.result.asOf);
+  return a.milestones;
+}
+function finalPill(a) {
+  const d = S.decisions[a.id];
+  return d ? `<span class="pill final d-${d.d}" title="${esc(`${FINAL[d.d]} by ${d.by || 'a reviewer'} on ${fmtDate(d.at)}${d.note ? ' — ' + d.note : ''}`)}">✓ ${FINAL[d.d]}</span>` : '<span class="tag await">Awaiting you</span>';
+}
+function decisionHtml(a) {
+  const d = S.decisions[a.id];
+  const choices = [['approved', 'Approve'], ['conditional', 'Approve with conditions'], ['hold', 'Hold'], ['waitlist', 'Waitlist'], ['declined', 'Decline']];
+  const t = a.territory, taken = t ? S.result.apps.filter(x => x.territory === t && x.id !== a.id && humanYes(x)).length : 0;
+  const warn = t && t.slots && taken >= t.slots ? `<p class="small warn-line">Note: ${t.id} has ${t.slots} spot${t.slots > 1 ? 's' : ''} and you have already approved ${taken} there. Approving this person goes over the plan.</p>` : '';
+  const drift = d && d.s && d.s !== a.decision ? `<p class="small warn-line">The suggestion has changed since you decided (was "${DEC_SHORT[d.s]}", now "${DEC_SHORT[a.decision]}"). Review if needed.</p>` : '';
+  return `<div class="sec decide" id="decide-sec"><h3>Your decision <span>StoreSense only suggests — the final call is yours</span></h3>
+    ${d ? `<div class="final-box"><span class="pill final d-${d.d}">✓ ${FINAL[d.d]}</span> <span class="small">by <b>${esc(d.by || 'a reviewer')}</b> on ${fmtDate(d.at)} · ${d.d === a.decision ? 'agrees with the suggestion' : `changed from "${DEC_SHORT[a.decision]}"`}</span>${d.note ? `<p class="small">“${esc(d.note)}”</p>` : ''}<button class="btn sm" type="button" id="dec-change">Change decision</button></div>${drift}` : ''}
+    <div class="decide-form" ${d ? 'hidden' : ''}>
+      <p class="small">Suggestion: <span class="pill d-${a.decision}">${DEC_SHORT[a.decision]}</span> — ${linkText(a.headline)}</p>
+      <div class="decide-btns"><button class="btn primary" type="button" data-dec="${a.decision}">Accept suggestion</button>${choices.filter(([k]) => k !== a.decision).map(([k, l]) => `<button class="btn" type="button" data-dec="${k}">${l}</button>`).join('')}</div>
+      <div class="decide-meta"><input class="input" id="dec-by" placeholder="Your name" value="${esc(S.reviewer)}" aria-label="Your name" maxlength="60"><input class="input" id="dec-note" placeholder="Reason (needed if you go against the suggestion)" aria-label="Reason" maxlength="240"></div>
+      ${warn}
+    </div></div>`;
+}
+function bindDecision(a) {
+  $('#dec-change') && ($('#dec-change').onclick = () => { $('#decide-sec .decide-form').hidden = false; $('#dec-change').hidden = true; });
+  $$('#decide-sec [data-dec]').forEach(b => b.onclick = () => {
+    const choice = b.dataset.dec, note = $('#dec-note').value.trim(), by = $('#dec-by').value.trim();
+    if (choice !== a.decision && !note) { toast('Add a short reason when you go against the suggestion'); $('#dec-note').focus(); $('#dec-note').classList.add('need'); return; }
+    if (!by) { toast('Add your name so the decision can be traced'); $('#dec-by').focus(); $('#dec-by').classList.add('need'); return; }
+    recordDecisions([a], choice, note, by);
+  });
+}
+function recordDecisions(list, choice, note, by) {
+  S.reviewer = by; store.set('storesense.reviewer', by);
+  const at = new Date().toISOString();
+  for (const a of list) {
+    const c = choice || a.decision;
+    S.decisions[a.id] = { d: c, s: a.decision, note: note || '', by, at };
+    logActivity('decision', `${a.name} (${a.id}): ${FINAL[c]}`, `${c === a.decision ? 'Agreed with the suggestion' : `Changed from "${DEC_SHORT[a.decision]}"`}${note ? ` — ${note}` : ''} · by ${by}`, `app/${a.id}`);
+  }
+  store.set('storesense.decisions', S.decisions);
+  renderAll();
+  toast(list.length === 1 ? `Recorded: ${FINAL[choice || list[0].decision]}` : `Recorded ${list.length} decisions`, 'Undo', () => { for (const a of list) delete S.decisions[a.id]; store.set('storesense.decisions', S.decisions); logActivity('decision', `Undid ${list.length} decision${list.length > 1 ? 's' : ''}`, '', 'feed'); renderAll(); });
+  if (list.length === 1 && humanYes(list[0])) confetti();
+}
+function confirmBulk(pend) {
+  const box = $('#palette .pal-box');
+  $('#palette').classList.add('on');
+  const counts = DEC.map(d => [d, pend.filter(a => a.decision === d).length]).filter(([, n]) => n);
+  box.innerHTML = `<h2>Accept ${pend.length} suggestion${pend.length > 1 ? 's' : ''}?</h2><div class="report">
+    <p>This records the suggested decision as your final decision for everyone in this list who has no decision yet:</p>
+    <ul>${counts.map(([d, n]) => `<li><b>${n}</b> × ${FINAL[d]}</li>`).join('')}</ul>
+    <p class="small muted">You can change any of them later on their profile. Each one is logged with your name.</p>
+    <input class="input" id="bulk-by" placeholder="Your name" value="${esc(S.reviewer)}" aria-label="Your name" style="width:100%;margin:8px 0 12px">
+    <div style="display:flex;gap:8px"><button class="btn primary" type="button" id="bulk-ok">Accept ${pend.length}</button><button class="btn" type="button" id="bulk-no">Cancel</button></div></div>`;
+  $('#bulk-no').onclick = () => closePalette();
+  $('#bulk-ok').onclick = () => {
+    const by = $('#bulk-by').value.trim();
+    if (!by) { $('#bulk-by').classList.add('need'); $('#bulk-by').focus(); return; }
+    closePalette(); recordDecisions(pend, null, 'Accepted in bulk from the To-do list', by);
+  };
+  setTimeout(() => $('#bulk-by').focus(), 50);
+}
+
 // ---------------- drawer ----------------
 function openDrawer(id, keep, fromRoute) {
   const a = S.result.apps.find(x => x.id === id);
@@ -586,6 +686,7 @@ function openDrawer(id, keep, fromRoute) {
       <p style="margin-top:8px">${linkText(a.headline)}</p>
     </div>
     <div class="dr-b">
+      ${decisionHtml(a)}
       ${answersHtml(a)}
       <div class="sec"><h3>Why</h3><ul>${(a.reasons || []).map(r => `<li>${linkText(r)}</li>`).join('')}</ul></div>
       ${traceHtml(a)}
@@ -613,14 +714,14 @@ function openDrawer(id, keep, fromRoute) {
           <dt>Similar shops</dt><dd>${a.competitors} nearby ${a.competitors >= 7 ? '<span class="tag bad">Crowded</span>' : ''}</dd>
           <dt>Location score</dt><dd><b>${a.site}</b></dd></dl></div>${trafficHtml(a)}` : ''}
       ${a.timeline ? `<div class="sec"><h3>Timeline</h3><dl class="kv"><dt>Target</dt><dd>${a.launchUsed} months</dd><dt>Earliest</dt><dd>${a.timeline.minMonths} months</dd><dt>Opening</dt><dd><b>${fmtDate(a.timeline.date)}</b></dd>${a.timeline.festival ? `<dt>Festival</dt><dd>${esc(a.timeline.festival)}</dd>` : ''}</dl></div>` : ''}
-      ${a.milestones ? `<div class="sec"><h3>Steps to open <span>${Object.values(prog).filter(Boolean).length} of ${a.milestones.length} done</span></h3><div class="msl">${a.milestones.map(m => `
+      ${humanYes(a) && planFor(a) ? `<div class="sec"><h3>Steps to open <span>${Object.values(prog).filter(Boolean).length} of ${planFor(a).length} done</span></h3><div class="msl">${planFor(a).map(m => `
         <label class="ms ${prog[m.key] ? 'done' : ''}"><input type="checkbox" data-ms="${m.key}" ${prog[m.key] ? 'checked' : ''}><div><div class="t">${esc(m.label)}</div><div class="d">${esc(m.detail)} · ${esc(m.owner)}</div></div><div class="due">${fmtDate(m.due)}</div></label>`).join('')}</div>
-        </div>` : `<div class="sec"><h3>What happens next</h3>${nextSteps(a, res)}</div>`}
+        </div>` : `<div class="sec"><h3>Suggested next steps <span>start after your decision</span></h3>${nextSteps(a, res)}</div>`}
       ${a.issues?.length ? `<div class="sec"><h3>Things we fixed or need</h3><ul>${a.issues.map(i => `<li>${i.level === 'block' ? '<b>Need:</b> ' : ''}${linkText(i.text)}</li>`).join('')}</ul></div>` : ''}
       <div class="sec" id="dr-compose-sec" hidden><h3>Message <span>${esc(a.lang)}</span></h3><textarea class="compose" id="dr-compose"></textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="btn sm primary" id="dr-copy">Copy message</button><span class="small muted">Not sent automatically.</span></div></div>
     </div>
     <div class="dr-f">
-      <button class="btn primary" id="dr-info"><svg><use href="#i-mail"/></svg>${a.decision === 'hold' ? 'Ask for info' : 'Write message'}</button>
+      <button class="btn primary" id="dr-info"><svg><use href="#i-mail"/></svg>${!S.decisions[a.id] && a.decision === 'hold' ? 'Ask for info' : 'Write message'}</button>
       <button class="btn" id="dr-hs">Copy for HubSpot</button>
       <button class="btn ghost" id="dr-ask">Ask why</button>
     </div>`;
@@ -631,7 +732,11 @@ function openDrawer(id, keep, fromRoute) {
     cb.closest('.ms').classList.toggle('done', cb.checked);
     if (S.tab === 'onboarding') renderOnboarding();
   });
-  $('#dr-info').onclick = () => { $('#dr-compose-sec').hidden = false; $('#dr-compose').value = composeMessage(a); $('#dr-compose').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  $('#dr-info').onclick = () => {
+    if (!S.decisions[a.id] && a.decision !== 'hold') { toast('Record your decision first. StoreSense only suggests.'); $('#decide-sec')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#decide-sec')?.classList.add('flash'); return; }
+    $('#dr-compose-sec').hidden = false; $('#dr-compose').value = composeMessage(a); $('#dr-compose').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  bindDecision(a);
   $('#dr-copy') && ($('#dr-copy').onclick = () => copy($('#dr-compose').value, 'Message copied'));
   $('#dr-hs').onclick = () => copy(JSON.stringify(hubspotPayload(a), null, 2), 'HubSpot record copied');
   $('#dr-ask').onclick = () => { go('ask'); sendAsk(`Explain ${a.id}`); };
@@ -653,11 +758,12 @@ const MSG = {
 };
 function composeMessage(a) {
   const m = MSG[a.lang] || MSG.English;
+  const fd = S.decisions[a.id]?.d || (a.decision === 'hold' ? 'hold' : null);
   let items;
-  if (a.decision === 'hold') items = [m.need, ...a.request.map(r => `• ${r}`)];
-  else if (a.bucket === 'ready') items = [a.conditions.length ? m.cond : m.next, ...a.conditions.map(c => `• ${c.text}`), ...a.milestones.slice(0, 3).map(x => `• ${x.label} — ${fmtDate(x.due)}`)];
-  else if (a.decision === 'waitlist') items = [m.wait, `• ${a.headline}`, `• ${nurtureAdvice(a)}`];
-  else items = [`• ${a.headline}`, ...(a.reasons || []).slice(0, 2).map(r => `• ${r}`)];
+  if (fd === 'hold') items = [m.need, ...(a.request || [S.decisions[a.id]?.note || 'a few more details']).map(r => `• ${r}`)];
+  else if (fd === 'approved' || fd === 'conditional') items = [fd === 'conditional' ? m.cond : m.next, ...(fd === 'conditional' ? (a.conditions?.length ? a.conditions.map(c => `• ${c.text}`) : [`• ${S.decisions[a.id].note}`]) : []), ...planFor(a).slice(0, 3).map(x => `• ${x.label} — ${fmtDate(x.due)}`)];
+  else if (fd === 'waitlist') items = [m.wait, `• ${S.decisions[a.id]?.note || a.headline}`, `• ${nurtureAdvice(a)}`];
+  else items = [`• ${S.decisions[a.id]?.note || a.headline}`];
   const body = [m.hi(a.name), m.thanks(a.id), '', ...items, '', m.bye].join('\n');
   return a.lang !== 'English' ? `${body}\n\n(Details are in English so the team can check them.)` : body;
 }
@@ -668,7 +774,8 @@ function hubspotPayload(a) {
     contact: { firstname: first, lastname: rest.join(' '), city: a.cityName, state: a.stateName, zip: a.assignedPin || a.pin, hs_language: a.lang, franchise_application_id: a.id },
     deal: {
       dealname: `Franchise ${a.id} · ${a.cityName} ${a.assignedPin || a.pin}`, pipeline: 'franchise_partners',
-      dealstage: { approved: 'approved', conditional: 'approved_with_conditions', hold: 'awaiting_information', waitlist: 'nurture', declined: 'closedlost' }[a.decision],
+      dealstage: S.decisions[a.id] ? { approved: 'approved', conditional: 'approved_with_conditions', hold: 'awaiting_information', waitlist: 'nurture', declined: 'closedlost' }[S.decisions[a.id].d] : 'awaiting_decision',
+      suggested_decision: DEC_SHORT[a.decision], final_decision: S.decisions[a.id] ? FINAL[S.decisions[a.id].d] : '', decided_by: S.decisions[a.id]?.by || '', decision_note: S.decisions[a.id]?.note || '',
       amount: Math.round((a.invest || 0) * 1e5), territory: a.territory?.id || '', decision_reason: a.headline,
       partner_score: a.partner, site_score: a.site, payback_months: isFinite(a.payback) ? Math.round(a.payback) : null,
       conditions: (a.conditions || []).map(c => c.text).join(' | '), target_open_date: a.timeline ? a.timeline.date.toISOString().slice(0, 10) : '',
@@ -720,6 +827,7 @@ function renderTerritories() {
           <dt>Got a spot</dt><dd><div class="winners">${t.winners.map(w => `<span class="winner" data-app="${esc(w.id)}" title="${esc(w.headline)}">${esc(w.name)} <span class="muted">${w.combined}</span></span>`).join('') || '—'}</div></dd>
           <dt>Waitlist</dt><dd>${t.waitlist.length ? t.waitlist.slice(0, 4).map(w => `<a href="#" data-app="${esc(w.id)}">${esc(w.id)}</a>`).join(', ') + (t.waitlist.length > 4 ? ` +${t.waitlist.length - 4}` : '') : '—'}</dd>
           <dt>Covers</dt><dd class="pins">${t.pins.slice(0, 12).map(pinLink).join('') || (t.prefixes?.length ? `pins starting ${t.prefixes.join(', ')}` : `all of ${esc(t.city)}`)}${t.pins.length > 12 ? `<span class="muted"> +${t.pins.length - 12} more</span>` : ''}</dd>
+          ${(() => { const e = trafficSummary(res).byTer.get(t.id); return e ? `<dt>Traffic</dt><dd>about <b>${e.visitors}</b> visitors a day at ${e.n} suggested site${e.n > 1 ? 's' : ''}</dd>` : ''; })()}
           <dt>Empty pins</dt><dd class="pins">${t.pinsFree.map(pinLink).join('') || '—'}</dd>
           ${t.pairings.length ? `<dt>Team-ups</dt><dd><button class="linkish" data-pair="${t.id}">${t.pairings.length} pair${t.pairings.length > 1 ? 's' : ''} could invest together</button></dd>` : ''}
         </dl>
@@ -853,10 +961,10 @@ function drawMap() {
   const est = [...pinSet.keys()].filter(p => pinPoint(p, pinSet.get(p).city).source === 'estimated').length;
   $('#map-strip').innerHTML = strip(india ? [
     { l: 'Cities', v: cityAgg.length }, { l: 'Our stores', v: stores.length }, { l: 'Applied', v: apps.length },
-    { l: 'Ready to call', v: apps.filter(a => a.bucket === 'ready').length, dot: 'var(--d-approved)' }, { l: 'Empty pins', v: free.length },
+    { l: 'Suggested yes', v: apps.filter(a => a.bucket === 'ready').length, dot: 'var(--d-approved)' }, { l: 'Empty pins', v: free.length },
   ] : [
     { l: 'Our stores', v: stores.length }, { l: 'Applied', v: apps.length },
-    { l: 'Ready to call', v: apps.filter(a => a.bucket === 'ready').length, dot: 'var(--d-approved)' }, { l: 'Empty pins', v: free.length },
+    { l: 'Suggested yes', v: apps.filter(a => a.bucket === 'ready').length, dot: 'var(--d-approved)' }, { l: 'Empty pins', v: free.length },
     { l: 'Shopper level', v: heat.length ? (heat.reduce((n, h) => n + h.w, 0) / heat.length).toFixed(2) : '—' },
   ]);
   $('#map-legend').innerHTML = `
@@ -864,7 +972,7 @@ function drawMap() {
     <div class="row-l"><span class="lg-store"></span>Our store · ${cfg.overlapKm} km ring around it${india ? '' : ' · white towers in 3D'}</div>
     ${DEC.map(d => `<button class="row-l legend-toggle ${(S.mapHide || {})[d] ? 'off' : ''}" data-dec="${d}" title="Show or hide"><i class="dot" style="background:var(--d-${d});width:10px;height:10px;border-radius:50%"></i>${DEC_LEG[d]}</button>`).join('')}
     <div class="row-l"><span class="lg-free"></span>Empty pin — where to find partners</div>
-    ${india ? '<p class="small muted">Bubbles are cities: bigger means more applicants. Click one to fly in.</p>' : '<p class="small muted">Columns rise for people ready to call: taller means a better score. Drag with the right mouse button (or two fingers) to tilt and turn.</p>'}
+    ${india ? '<p class="small muted">Bubbles are cities: bigger means more applicants. Click one to fly in.</p>' : '<p class="small muted">Columns rise for people suggested yes: taller means a better score. Drag with the right mouse button (or two fingers) to tilt and turn.</p>'}
     <p class="small muted">${est ? `${est} of ${pinSet.size} pin locations are estimated near the city centre.` : 'All pin locations here are exact.'}</p>
     ${est ? '<button class="btn sm" id="refine">Make locations exact</button><div class="small muted" id="refine-s"></div>' : ''}`;
   $$('#map-legend .legend-toggle').forEach(b => b.onclick = () => { S.mapHide = { ...(S.mapHide || {}), [b.dataset.dec]: !(S.mapHide || {})[b.dataset.dec] }; drawMap(); });
@@ -888,15 +996,15 @@ async function locatePins(pins) {
 function renderOnboarding() {
   const res = S.result, v = $('#view-onboarding'), f = (S.onb ||= { f: 'all', q: '' });
   const today = new Date(), week = new Date(Date.now() + 7 * 864e5);
-  const ready = res.apps.filter(a => a.bucket === 'ready');
+  const ready = res.apps.filter(a => humanYes(a) && planFor(a));
   const rows = ready.map(a => {
-    const p = S.progress[a.id] || {};
-    const idx = a.milestones.findIndex(m => !p[m.key]);
-    return { a, idx, m: a.milestones[idx], n: a.milestones.filter(m => p[m.key]).length };
+    const p = S.progress[a.id] || {}, ms = planFor(a);
+    const idx = ms.findIndex(m => !p[m.key]);
+    return { a, idx, m: ms[idx], n: ms.filter(m => p[m.key]).length };
   });
   const test = { all: () => true, overdue: r => r.m && r.m.due < today, week: r => r.m && r.m.due >= today && r.m.due <= week, cond: r => r.a.conditions.length, open: r => !r.m };
   let shown = rows.filter(test[f.f]);
-  if (f.q) { const q = f.q.toLowerCase(); shown = shown.filter(r => `${r.a.id} ${r.a.name} ${r.a.cityName} ${r.a.territory.id}`.toLowerCase().includes(q)); }
+  if (f.q) { const q = f.q.toLowerCase(); shown = shown.filter(r => `${r.a.id} ${r.a.name} ${r.a.cityName} ${r.a.territory?.id || ''}`.toLowerCase().includes(q)); }
   const cols = MILESTONES.map((m, i) => ({ ...m, items: shown.filter(r => r.idx === i) }));
   const done = shown.filter(r => r.idx < 0);
   v.innerHTML = `
@@ -909,9 +1017,9 @@ function renderOnboarding() {
     ], f.f)}
     <div class="toolbar"><input class="input" id="oq" type="search" placeholder="Search name or city  ( / )" value="${esc(f.q)}" aria-label="Search partners"></div>
     <p class="count-line">${shown.length} ${shown.length === 1 ? 'store' : 'stores'} · drag a card right when a step is done</p>
-    ${shown.length ? `<div class="kanban">${cols.map((c, ci) => `<div class="col" data-col="${ci}"><h3>${esc(c.label)} <span>${c.items.length}</span></h3>
-      ${c.items.sort((x, y) => x.m.due - y.m.due).map(({ a, m, n }) => `<div class="kcard" draggable="true" data-app="${a.id}"><b>${esc(a.name)}</b><div class="muted">${esc(a.cityName)} · ${a.territory.id}</div><div class="${m.due < today ? 'late' : 'muted'}">Due ${fmtDate(m.due)}</div><div class="p"><i style="width:${(n / 8) * 100}%"></i></div></div>`).join('') || '<div class="small muted">—</div>'}
-    </div>`).join('')}<div class="col" data-col="${MILESTONES.length}"><h3>🎉 Open <span>${done.length}</span></h3>${done.map(({ a }) => `<div class="kcard" draggable="true" data-app="${a.id}"><b>${esc(a.name)}</b><div class="muted">${a.territory.id}</div></div>`).join('') || '<div class="small muted">—</div>'}</div></div>` : empty('No stores here.')}`;
+    ${!rows.length ? empty(`Onboarding starts only after a person approves a partner. <a class="lnk" data-go="feed?bucket=ready&human=pending">Review the ${S.result.apps.filter(x => x.bucket === 'ready' && !S.decisions[x.id]).length} suggested yeses</a>`) : shown.length ? `<div class="kanban">${cols.map((c, ci) => `<div class="col" data-col="${ci}"><h3>${esc(c.label)} <span>${c.items.length}</span></h3>
+      ${c.items.sort((x, y) => x.m.due - y.m.due).map(({ a, m, n }) => `<div class="kcard" draggable="true" data-app="${a.id}"><b>${esc(a.name)}</b><div class="muted">${esc(a.cityName)} · ${a.territory?.id || 'no area'}</div><div class="${m.due < today ? 'late' : 'muted'}">Due ${fmtDate(m.due)}</div><div class="p"><i style="width:${(n / 8) * 100}%"></i></div></div>`).join('') || '<div class="small muted">—</div>'}
+    </div>`).join('')}<div class="col" data-col="${MILESTONES.length}"><h3>🎉 Open <span>${done.length}</span></h3>${done.map(({ a }) => `<div class="kcard" draggable="true" data-app="${a.id}"><b>${esc(a.name)}</b><div class="muted">${a.territory?.id || 'no area'}</div></div>`).join('') || '<div class="small muted">—</div>'}</div></div>` : empty('No stores here.')}`;
   $$('.strip .kpi', v).forEach(b => b.onclick = () => { f.f = b.dataset.k; renderOnboarding(); });
   $('#oq').oninput = e => { f.q = e.target.value; clearTimeout(renderOnboarding.t); renderOnboarding.t = setTimeout(() => { renderOnboarding(); const i = $('#oq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 150); };
   $$('[data-app]', v).forEach(el => el.onclick = () => openDrawer(el.dataset.app));
@@ -967,7 +1075,7 @@ function drawSuggestions() {
     $$('.chip', el).forEach(b => b.onclick = () => sendAsk(b.textContent));
   }
 }
-const ctxNow = () => ({ data: S.data, settings: S.settings, result: S.result, rerun: (d, s) => run(d, s) });
+const ctxNow = () => ({ data: S.data, settings: S.settings, result: S.result, rerun: (d, s) => run(d, s), human: S.decisions });
 const linkify = h => linkText(h, true);
 function drawChat(typing) {
   const html = S.chat.map(c => `<div class="msg ${c.who}">${c.who === 'me' ? esc(c.text) : linkify(c.html)}</div>`).join('') + (typing ? '<div class="msg bot"><span class="typing"><i></i><i></i><i></i></span></div>' : '');
@@ -1074,13 +1182,14 @@ function renderRules() {
     ['Our areas', 'Not in an area we want, or no spots left? Waitlist.'],
     ['Ready to fund', `Short on money, earns back slower than ${cfg.maxPayback} months, or too little experience? Waitlist.`],
     ['Pick the best', 'Highest score in each area gets the spot. One store per pin code.'],
-    ['Yes, or yes with conditions', 'If something small is missing, we say yes with a to-do and a deadline.'],
+    ['Suggest yes, or yes with conditions', 'If something small is missing, the suggestion is yes with a to-do and a deadline.'],
+    ['You decide', 'A person accepts or changes every suggestion on the profile, with a reason when they change it. Nothing happens until then.'],
   ];
   $('#view-rules').innerHTML = `
     ${strip([{ l: 'Lowest partner score', v: cfg.partnerBar }, { l: 'Earn back within', v: `${cfg.maxPayback} mo` }, { l: 'Shop experience', v: `${cfg.minExp} yr` }, { l: 'Space between stores', v: `${cfg.overlapKm} km` }, { l: 'Money needed', v: `₹${cfg.minInvest[1]}L`, s: `big city · ₹${cfg.minInvest[2]}L mid · ₹${cfg.minInvest[3]}L small` }])}
     <div class="grid g-2">
     <div class="card"><div class="card-h"><h2>The 8 steps</h2><span class="muted">In this order</span></div>
-      <table class="t">${steps.map(([k, v], i) => { const st = RULE_STAGE[i]; const n = st === 'done' ? S.result.apps.filter(a => a.bucket === 'ready').length : S.result.apps.filter(a => stopStep(a) === st).length; return `<tr class="clickable" data-step="${i + 1}" data-go="${st === 'done' ? 'feed?bucket=ready' : `feed?stage=${st}`}"><td class="num muted">${i + 1}</td><td><b>${k}</b></td><td>${v}</td><td class="num"><span class="tag">${n}</span></td></tr>`; }).join('')}</table></div>
+      <table class="t">${steps.map(([k, v], i) => { const st = RULE_STAGE[i]; const n = st === 'human' ? S.result.apps.filter(a => !S.decisions[a.id] && !a.withdrawn).length : st === 'done' ? S.result.apps.filter(a => a.bucket === 'ready').length : S.result.apps.filter(a => stopStep(a) === st).length; return `<tr class="clickable" data-step="${i + 1}" data-go="${st === 'human' ? 'feed?human=pending' : st === 'done' ? 'feed?bucket=ready' : `feed?stage=${st}`}"><td class="num muted">${i + 1}</td><td><b>${k}</b></td><td>${v}</td><td class="num"><span class="tag">${n}</span></td></tr>`; }).join('')}</table></div>
     <div class="card"><div class="card-h"><h2>Partner score</h2><span class="muted">Out of 100</span></div>
       <table class="t"><tr><th>What we look at</th><th class="num">Points</th></tr>
       <tr><td>Years running a shop</td><td class="num">${WEIGHTS.experience}</td></tr>
@@ -1122,7 +1231,7 @@ function stopStep(a) {
   if (['lost-slot', 'pin-taken'].includes(a.sub)) return 'won';
   return 'done';
 }
-const RULE_STAGE = ['clean', 'pin', 'bar', 'bar', 'territory', 'fundable', 'won', 'done'];
+const RULE_STAGE = ['clean', 'pin', 'bar', 'bar', 'territory', 'fundable', 'won', 'done', 'human'];
 const STAGE_LABEL = { clean: 'Stopped at: info missing', pin: 'Stopped at: store already there', bar: 'Stopped at: score or money too low', territory: 'Stopped at: outside our areas', fundable: 'Stopped at: money or site not ready', won: 'Stopped at: spot went to someone better' };
 const TAG_LABEL = { hot: 'Can open fast', compliant: 'Easy to train', festival: 'Misses festival', notes: 'Has location notes' };
 const WHERE = {
@@ -1134,6 +1243,8 @@ const WHERE = {
   tier: { label: v => ['', 'Big city', 'Mid city', 'Small town'][v] || `Tier ${v}`, test: (a, v) => String(a.tier) === String(v) },
   exp: { label: v => (v === '10' ? '10+ years in shops' : `${v} year${v === '1' ? '' : 's'} in shops`), test: (a, v) => a.exp != null && (v === '10' ? a.exp >= 10 : Math.floor(a.exp) === +v) },
   changed: { label: () => S.changed?.label || 'Changed', test: a => !!S.changed?.ids.has(a.id) },
+  human: { label: v => ({ pending: 'Awaiting your decision', decided: 'Decided by a person', agree: 'You agreed with the suggestion', changed: 'You changed the suggestion' }[v] || v), test: (a, v) => { const d = S.decisions[a.id]; return v === 'pending' ? !d && !a.withdrawn : v === 'decided' ? !!d : v === 'agree' ? !!d && d.d === a.decision : v === 'changed' ? !!d && d.d !== a.decision : true; } },
+  final: { label: v => `Final: ${FINAL[v] || v}`, test: (a, v) => S.decisions[a.id]?.d === v },
   tag: { label: v => TAG_LABEL[v] || v, test: (a, v) => (v === 'hot' ? a.hot : v === 'compliant' ? a.compliant : v === 'festival' ? !!a.timeline?.festivalMiss : v === 'notes' ? a.flags?.length > 0 : false) },
 };
 
@@ -1187,6 +1298,8 @@ function route() {
     for (const k of Object.keys(WHERE)) if (params[k] != null && params[k] !== '') where[k] = params[k];
     Object.assign(S.feed, { where, limit: 40 });
     if (params.bucket) S.feed.bucket = params.bucket;
+    S.feed.human = params.human && params.bucket ? params.human : 'all';
+    if (params.human && params.bucket) delete S.feed.where.human;
     S.feed.sub = params.sub || 'all';
   }
   if (tab === 'territories') { S.ter ||= { f: 'all', q: '', sort: 'priority' }; S.ter.f = params.f || 'all'; S.ter.q = ''; }
@@ -1310,7 +1423,7 @@ function welcomeHtml() {
   return `<section class="welcome" id="welcome">
     <div class="wl-head"><div class="logo big" aria-hidden="true"><svg><use href="#i-shop"/></svg></div>
       <div><p class="eyebrow" style="margin:0">Welcome to</p><h2 class="wl-title">StoreSense</h2></div></div>
-    <p class="wl-tag">Find the right franchise partners in the right places, and get their stores open. Every decision follows fixed rules you can read — nothing is guessed.</p>
+    <p class="wl-tag">Find the right franchise partners in the right places, and get their stores open. Every suggestion follows fixed rules you can read, and a person makes every final decision.</p>
     <form class="gsearch" id="gsearch" autocomplete="off" role="search">
       <svg aria-hidden="true"><use href="#i-search"/></svg>
       <input id="gq" placeholder="Search a name, pin code, city or territory — or ask anything" aria-label="Search or ask" aria-autocomplete="list" aria-controls="gs-drop">
@@ -1327,7 +1440,7 @@ function welcomeHtml() {
     <div class="enquiry card" id="enquiry" hidden></div>
     <div class="wl-info">
       <div><b>What it does</b><p>Reads your file, checks every application against the rules, and tells you who to call today.</p></div>
-      <div><b>How it decides</b><p>Eight fixed steps — the same file always gives the same answer. <a class="lnk" data-go="rules">See the rules</a></p></div>
+      <div><b>How it suggests</b><p>Eight fixed steps give a suggestion — the same file always gives the same one. You make every final decision. <a class="lnk" data-go="rules">See the rules</a></p></div>
       <div><b>Your data</b><p id="wl-data"></p></div>
       <div><b>Recent activity</b><ul class="wl-log" id="wl-log"></ul></div>
     </div>
@@ -1443,7 +1556,7 @@ function toggleEnquiry(show) {
 }
 
 // ---------------- activity log ----------------
-const LOG_TYPES = { search: 'Search', question: 'Question', enquiry: 'Enquiry', update: 'Update', rules: 'Rules', upload: 'File' };
+const LOG_TYPES = { decision: 'Decision', search: 'Search', question: 'Question', enquiry: 'Enquiry', update: 'Update', rules: 'Rules', upload: 'File' };
 function logActivity(type, text, result = '', goPath = '') {
   S.log.unshift({ t: new Date().toISOString(), type, text: String(text).slice(0, 200), result: String(result).replace(/<[^>]+>/g, '').slice(0, 220), go: goPath });
   if (S.log.length > 400) S.log.length = 400;
