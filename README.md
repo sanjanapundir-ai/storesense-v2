@@ -26,7 +26,7 @@ Franchise partner acquisition, geo-selection and onboarding engine (AI x Ops Hac
 | Rules | Every rule, weight and cost assumption |
 | Log | Every search, question, enquiry and change |
 
-The assistant is also on every page (the **Ask** button), and every number, ID, pin and label links to the data behind it. Every view has its own address, so the browser's Back button works and links can be shared.
+The assistant is also a side panel on every page (the **Ask** button or Alt+A). On wide screens it docks on the right, like a browser's assistant sidebar, and the page shrinks to make room. You can drag its edge to resize it. It knows which page or person you're looking at, so "why is this person on hold?" works on a profile. It has three tabs: **Chat**; **Transcripts**, where every conversation is recorded word for word with times and pages and can be searched, continued, copied or downloaded; and **Notes**, which holds your own notes, answers you saved with "Add to notes", a line for every answer, and insights, and every number, ID, pin and label links to the data behind it. Every view has its own address, so the browser's Back button works and links can be shared.
 
 ## Run locally
 
@@ -47,4 +47,4 @@ Open http://localhost:5178. No build step.
 - `js/app.js` — the interface
 - `js/_test*.js` — `node js/_test.js "Why is APP-007 on hold?"` and friends
 
-Decisions, enquiries, notes, ticks and the activity log are saved in each viewer's own browser only.
+Decisions, chat transcripts, enquiries, notes, ticks and the activity log are saved in each viewer's own browser only.

@@ -31,7 +31,7 @@ const S = {
   history: [], source: '', tab: 'overview',
   feed: { bucket: 'ready', sub: 'all', q: '', sort: 'priority', limit: 40, where: {} },
   trail: [], page: 'overview',
-  chat: [], progress: store.get('storesense.progress', {}), openId: null,
+  progress: store.get('storesense.progress', {}), openId: null,
   log: store.get('storesense.log', []), notes: store.get('storesense.notes', []), inquiries: store.get('storesense.inquiries', []),
   decisions: store.get('storesense.decisions', {}), reviewer: store.get('storesense.reviewer', ''),
 };
@@ -45,7 +45,8 @@ function load(sheets, source, quiet) {
     return;
   }
   if (!data.territories.length) data.report.assumptions.push('No territories sheet found: nobody can be given a spot until territories are added, so strong applicants go on the waitlist.');
-  S.data = data; S.source = source; S.history = []; S.chat = [];
+  S.data = data; S.source = source; S.history = [];
+  if (S.result) startConvo();
   recompute();
   if (!quiet) {
     toast(`${data.applications.length} applications loaded`, 'How we read it', () => openReport());
@@ -126,7 +127,8 @@ function renderAll() {
 }
 function renderTab(t) {
   ({ overview: renderOverview, feed: renderFeed, territories: renderTerritories, map: renderMap, onboarding: renderOnboarding, ask: renderAsk, rules: renderRules, log: renderLog })[t]();
-  $('#fab')?.classList.toggle('hide', t === 'ask');
+  $('#fab')?.classList.toggle('hide', t === 'ask' || $('#assist')?.classList.contains('on'));
+  if ($('#assist')?.classList.contains('on')) drawSuggestions();
   if (t !== 'overview') countUp($(`#view-${t}`));
   reveal($(`#view-${t}`));
 }
@@ -747,7 +749,8 @@ function openDrawer(id, keep, fromRoute) {
 }
 function closeDrawer(push) {
   if (push && S.openId) { history.pushState(null, '', '#/' + S.page); addTrail(S.page); }
-  S.openId = null; $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden', 'true'); $('#scrim').classList.remove('on'); }
+  S.openId = null; $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden', 'true'); $('#scrim').classList.remove('on');
+  if ($('#assist').classList.contains('on')) drawSuggestions(); }
 $('#scrim').onclick = () => closeDrawer(true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#palette').classList.contains('on') && S.openId) closeDrawer(true); if (e.key === 'Enter' && e.target.classList?.contains('row')) openDrawer(e.target.dataset.id); });
 
@@ -1045,8 +1048,41 @@ function renderOnboarding() {
   });
 }
 
-// ---------------- ask: chat, notes, and the assistant on every page ----------------
-const GREETING = '<p>Hi! I can find people, explain any decision, do the maths, and take you to any page. Ask in plain words — I only answer from your data and the rules, and say so when I don\'t know.</p>';
+// ---------------- ask: chat, transcripts, notes, and the side panel on every page ----------------
+const GREETING = '<p>Hi! I can find people, explain any suggestion, do the maths, and take you to any page. Ask in plain words — I only answer from your data and the rules, and say so when I don\'t know. I can see the page you are on, so "why is this person on hold?" works on a profile.</p>';
+// Every conversation is recorded as a transcript in this browser
+S.convos = store.get('storesense.convos', []);
+const convoNow = () => S.convos.find(c => c.id === S.convoId);
+function startConvo(force) {
+  const cur = convoNow();
+  if (!force && cur && !cur.msgs.some(m => m.who === 'me')) { S.chat = cur.msgs; return; }
+  const c = { id: 'c' + Date.now().toString(36), started: new Date().toISOString(), updated: new Date().toISOString(), title: 'New chat', msgs: [{ who: 'bot', html: GREETING, t: new Date().toISOString() }] };
+  S.convos.unshift(c); S.convoId = c.id; S.chat = c.msgs; saveConvos();
+}
+function openConvo(id) { const c = S.convos.find(x => x.id === id); if (!c) return; S.convoId = id; S.chat = c.msgs; store.set('storesense.convo', id); drawChat(); }
+function saveConvos() {
+  const c = convoNow();
+  if (c) { c.updated = new Date().toISOString(); c.title = c.msgs.find(m => m.who === 'me')?.text.slice(0, 80) || 'New chat'; }
+  S.convos = S.convos.filter(x => x.id === S.convoId || x.msgs.some(m => m.who === 'me')).slice(0, 60);
+  store.set('storesense.convos', S.convos); store.set('storesense.convo', S.convoId);
+}
+S.convoId = store.get('storesense.convo', null);
+if (convoNow()) S.chat = convoNow().msgs; else startConvo(true);
+
+const when = t => new Date(t).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+function pageLabel() {
+  if (S.openId) { const a = S.result?.apps.find(x => x.id === S.openId); return a ? `${a.id} · ${a.name}` : S.openId; }
+  const [pg, id] = (S.page || 'overview').split('?')[0].split('/');
+  return id ? `${PAGES[pg]?.[1] || pg} · ${id}` : PAGES[S.tab]?.[1] || 'Home';
+}
+// "this person", "this area": fill in what is open on screen so questions work like asking about the current tab
+function withContext(q) {
+  if (/\b(app-?\d+|ter-?\d+)\b/i.test(q)) return q;
+  if (S.openId && /\b(this|that) (person|applicant|one|profile|partner|site|location|shop)\b|\b(him|her|them|they|he|she|their|his)\b/i.test(q)) return `${q} ${S.openId}`;
+  const ter = (S.page || '').match(/^territories\/(TER-\d+)/i)?.[1];
+  if (ter && /\b(this|that) (area|territory)\b|\bhere\b/i.test(q)) return `${q} ${ter}`;
+  return q;
+}
 function chatHtml(prefix) {
   return `<div class="msgs" id="${prefix}msgs" aria-live="polite"></div>
     <div class="sugg" id="${prefix}sugg"></div>
@@ -1055,18 +1091,27 @@ function chatHtml(prefix) {
 function bindChat(prefix) {
   $(`#${prefix}composer`).onsubmit = e => { e.preventDefault(); const i = $(`#${prefix}q`), q = i.value.trim(); if (q) { i.value = ''; sendAsk(q); } };
   $(`#${prefix}undo`).onclick = () => sendAsk('undo');
+  $(`#${prefix}msgs`).onclick = e => {
+    const b = e.target.closest('[data-pin],[data-cp]'); if (!b) return;
+    const m = S.chat[+(b.dataset.pin ?? b.dataset.cp)]; if (!m) return;
+    const q = [...S.chat.slice(0, S.chat.indexOf(m))].reverse().find(x => x.who === 'me')?.text || 'Note';
+    if (b.dataset.cp != null) return copy(plainText(m.html), 'Answer copied');
+    S.notes.unshift({ t: new Date().toISOString(), q, a: plainText(m.html).replace(/Worked out from .*$/, '').slice(0, 1200), go: m.go || '', pinned: true, page: m.page });
+    store.set('storesense.notes', S.notes); m.pinned = true; saveConvos(); drawChat(); refreshNotes(); toast('Saved to notes');
+  };
 }
 function renderAsk() {
   const v = $('#view-ask');
   if (!$('#msgs')) {
-    v.innerHTML = `<div class="grid g-main ask-grid"><div class="card chat">${chatHtml('')}</div><div class="card notes-card"><div id="notes"></div></div></div>`;
+    v.innerHTML = `<div class="grid g-main ask-grid"><div class="card chat">${chatHtml('')}</div><div class="card notes-card"><div class="seg-ctl side-tabs" id="ask-tabs"><button data-t="transcripts" class="on">Transcripts</button><button data-t="notes">Notes</button></div><div id="ask-side"></div></div></div>`;
     bindChat('');
+    $$('#ask-tabs button').forEach(b => b.onclick = () => { $$('#ask-tabs button').forEach(x => x.classList.toggle('on', x === b)); S.askSide = b.dataset.t; drawAskSide(); });
   }
-  if (!S.chat.length) S.chat.push({ who: 'bot', html: GREETING });
   drawSuggestions();
-  renderNotes($('#notes'));
+  drawAskSide();
   drawChat();
 }
+function drawAskSide() { const el = $('#ask-side'); if (!el) return; (S.askSide || 'transcripts') === 'notes' ? renderNotes(el) : renderTranscripts(el); }
 function drawSuggestions() {
   const sug = suggestionsFor(S.tab, S.result, S.openId);
   for (const id of ['#sugg', '#a-sugg']) {
@@ -1074,30 +1119,37 @@ function drawSuggestions() {
     el.innerHTML = sug.map(x => `<button class="chip" type="button">${esc(x)}</button>`).join('');
     $$('.chip', el).forEach(b => b.onclick = () => sendAsk(b.textContent));
   }
+  if ($('#as-ctx')) $('#as-ctx').innerHTML = `<svg><use href="#i-target"/></svg><span>Looking at <b>${esc(pageLabel())}</b></span>`;
 }
 const ctxNow = () => ({ data: S.data, settings: S.settings, result: S.result, rerun: (d, s) => run(d, s), human: S.decisions });
 const linkify = h => linkText(h, true);
 function drawChat(typing) {
-  const html = S.chat.map(c => `<div class="msg ${c.who}">${c.who === 'me' ? esc(c.text) : linkify(c.html)}</div>`).join('') + (typing ? '<div class="msg bot"><span class="typing"><i></i><i></i><i></i></span></div>' : '');
+  const html = S.chat.map((c, i) => c.who === 'me'
+    ? `<div class="msg me">${esc(c.text)}${c.page ? `<span class="msg-ctx">on ${esc(c.page)}</span>` : ''}</div>`
+    : `<div class="msg bot">${linkify(c.html)}${i ? `<div class="msg-act"><span>${c.t ? when(c.t) : ''}</span><button type="button" data-pin="${i}" ${c.pinned ? 'disabled' : ''}>${c.pinned ? '✓ In notes' : '+ Add to notes'}</button><button type="button" data-cp="${i}">Copy</button></div>` : ''}</div>`).join('')
+    + (typing ? '<div class="msg bot"><span class="typing"><i></i><i></i><i></i></span></div>' : '');
   for (const id of ['#msgs', '#a-msgs']) { const m = $(id); if (m) { m.innerHTML = html; m.scrollTop = m.scrollHeight; } }
+  if ($('#as-title')) $('#as-title').textContent = convoNow()?.title || 'New chat';
 }
 function sendAsk(q) {
-  if (!S.chat.length) S.chat.push({ who: 'bot', html: GREETING });
-  S.chat.push({ who: 'me', text: q });
+  if (!S.chat.length) S.chat.push({ who: 'bot', html: GREETING, t: new Date().toISOString() });
+  S.chat.push({ who: 'me', text: q, t: new Date().toISOString(), page: pageLabel() });
+  saveConvos();
   const visible = $('#msgs') || $('#assist.on');
   drawChat(!!visible);
   setTimeout(() => answerAsk(q), visible ? 380 : 0);
 }
-const plainText = h => String(h).replace(/<(script|style)[\s\S]*?<\/\1>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const plainText = h => String(h).replace(/<(script|style)[\s\S]*?<\/\1>/g, '').replace(/<\/(p|li|h\d|tr|div)>/g, '\n').replace(/<[^>]+>/g, ' ').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{2,}/g, '\n').trim().replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+const botSay = (html, extra) => S.chat.push({ who: 'bot', html, t: new Date().toISOString(), ...extra });
 function answerAsk(q) {
   const before = S.result;
-  const out = ask(q, ctxNow());
+  const out = ask(withContext(q), ctxNow());
   if (out.undo) {
     const prev = S.history.pop();
-    if (prev) { S.data = prev.data; S.settings = prev.settings; S.result = run(S.data, S.settings); S.chat.push({ who: 'bot', html: `<p>Undone: "${esc(prev.label)}".</p>` }); afterChange(); logActivity('update', `Undo: ${prev.label}`, '', 'ask'); }
-    else S.chat.push({ who: 'bot', html: '<p>Nothing to undo.</p>' });
+    if (prev) { S.data = prev.data; S.settings = prev.settings; S.result = run(S.data, S.settings); botSay(`<p>Undone: "${esc(prev.label)}".</p>`); afterChange(); logActivity('update', `Undo: ${prev.label}`, '', 'ask'); }
+    else botSay('<p>Nothing to undo.</p>');
   } else if (out.reset) {
-    S.chat.push({ who: 'bot', html: '<p>To start over, click Use sample or upload your file again.</p>' });
+    botSay('<p>To start over, click Use sample or upload your file again.</p>');
   } else {
     if (out.data || out.settings) {
       S.history.push({ data: S.data, settings: S.settings, label: q });
@@ -1108,67 +1160,146 @@ function answerAsk(q) {
       toast('Updated', 'Undo', () => sendAsk('undo'));
       if (out.focus && before.apps.find(a => a.id === out.focus)?.bucket !== 'ready' && S.result.apps.find(a => a.id === out.focus)?.bucket === 'ready') confetti();
     }
-    S.chat.push({ who: 'bot', html: out.html });
-    const first = plainText(out.html).replace(/Worked out from .*$/, '').slice(0, 220);
-    if (!out.help && !out.unknown && !out.nav) addNote(q, first, out.focus ? `app/${out.focus}` : out.data || out.settings ? 'overview' : '');
+    const goPath = out.focus ? `app/${out.focus}` : out.data || out.settings ? 'overview' : '';
+    botSay(out.html, goPath ? { go: goPath } : {});
+    const first = plainText(out.html).replace(/\n/g, ' ').replace(/Worked out from .*$/, '').slice(0, 220);
+    if (!out.help && !out.unknown && !out.nav) addNote(q, first, goPath);
     logActivity(out.data || out.settings ? 'update' : 'question', q, out.unknown ? 'Not understood — nothing guessed' : first, out.nav || (out.focus ? `app/${out.focus}` : 'ask'));
     if (out.nav) setTimeout(() => go(out.nav), 250);
   }
+  saveConvos();
   drawChat();
   drawSuggestions();
-  if (S.tab === 'ask') renderNotes($('#notes'));
+  refreshNotes();
+}
+function refreshNotes() {
+  if (S.tab === 'ask') drawAskSide();
   if ($('#a-notes') && !$('#a-notes').hidden) renderNotes($('#a-notes'));
+  if ($('#a-trans') && !$('#a-trans').hidden) renderTranscripts($('#a-trans'));
 }
 
-// Notes: insights from the data, plus one line for every answer, kept in this browser
+// Transcripts: every conversation, word for word, with time and the page it was asked on
+function transcriptText(c) {
+  return [`StoreSense chat — ${c.title}`, `Started ${when(c.started)} · last message ${when(c.updated)}`, '',
+    ...c.msgs.slice(1).map(m => m.who === 'me' ? `[${when(m.t)}${m.page ? ' · on ' + m.page : ''}] You: ${m.text}` : `[${when(m.t)}] StoreSense:\n${plainText(m.html)}\n`)].join('\n');
+}
+function download(name, text) { const u = URL.createObjectURL(new Blob([text], { type: 'text/plain' })); Object.assign(document.createElement('a'), { href: u, download: name }).click(); setTimeout(() => URL.revokeObjectURL(u), 1000); }
+function renderTranscripts(el, viewId) {
+  if (!el) return;
+  const list = S.convos.filter(c => c.msgs.some(m => m.who === 'me'));
+  const c = viewId && S.convos.find(x => x.id === viewId);
+  if (c) {
+    el.innerHTML = `<div class="tr-head"><button class="btn sm ghost" data-x="back">‹ All transcripts</button><div class="tools"><button class="btn sm" data-x="cont">${c.id === S.convoId ? 'Back to chat' : 'Continue'}</button><button class="btn sm" data-x="copy">Copy</button><button class="btn sm" data-x="dl">Download</button><button class="btn sm ghost" data-x="del" title="Delete this transcript">Delete</button></div></div>
+      <h3 class="tr-title">${esc(c.title)}</h3><p class="small muted">${when(c.started)} · ${c.msgs.filter(m => m.who === 'me').length} questions</p>
+      <div class="transcript">${c.msgs.slice(1).map(m => m.who === 'me'
+        ? `<div class="tl me"><div class="tl-h"><b>You</b><span>${when(m.t)}${m.page ? ` · on ${esc(m.page)}` : ''}</span></div><div>${esc(m.text)}</div></div>`
+        : `<div class="tl bot"><div class="tl-h"><b>StoreSense</b><span>${when(m.t)}</span></div><div>${linkify(m.html)}</div></div>`).join('')}</div>`;
+    $('[data-x=back]', el).onclick = () => renderTranscripts(el);
+    $('[data-x=cont]', el).onclick = () => { openConvo(c.id); S.tab === 'ask' && !$('#assist.on') ? $('#q')?.focus() : (assistTab('chat'), $('#a-q')?.focus()); };
+    $('[data-x=copy]', el).onclick = () => copy(transcriptText(c), 'Transcript copied');
+    $('[data-x=dl]', el).onclick = () => download(`storesense_chat_${c.started.slice(0, 10)}.txt`, transcriptText(c));
+    $('[data-x=del]', el).onclick = () => {
+      const keep = S.convos.slice(); S.convos = S.convos.filter(x => x.id !== c.id);
+      if (c.id === S.convoId) startConvo(true); else saveConvos();
+      drawChat(); renderTranscripts(el);
+      toast('Transcript deleted', 'Undo', () => { S.convos = keep; S.convoId = c.id; S.chat = c.msgs; saveConvos(); drawChat(); renderTranscripts(el); });
+    };
+    return;
+  }
+  const qv = el.dataset.q || '';
+  const shown = qv ? list.filter(x => x.msgs.some(m => (m.text || plainText(m.html || '')).toLowerCase().includes(qv.toLowerCase()))) : list;
+  el.innerHTML = `<div class="card-h"><h2>Transcripts</h2><div class="tools"><button class="btn sm" data-x="new">+ New chat</button>${list.length ? '<button class="btn sm" data-x="all">Download all</button>' : ''}</div></div>
+    ${list.length ? `<input class="input tr-search" type="search" placeholder="Search your conversations" value="${esc(qv)}" aria-label="Search transcripts">` : ''}
+    ${shown.length ? `<ul class="tr-list">${shown.map(x => `<li><button type="button" data-open="${x.id}" class="${x.id === S.convoId ? 'cur' : ''}"><b>${esc(x.title)}</b><span class="muted small">${when(x.updated)} · ${x.msgs.filter(m => m.who === 'me').length} question${x.msgs.filter(m => m.who === 'me').length === 1 ? '' : 's'}${x.id === S.convoId ? ' · current' : ''}</span></button></li>`).join('')}</ul>`
+      : `<p class="small muted">${qv ? 'No conversation mentions that.' : 'Every conversation is recorded here, word for word, with the time and the page you asked on. Saved in this browser only.'}</p>`}`;
+  $('[data-x=new]', el).onclick = () => { startConvo(); drawChat(); drawSuggestions(); $('#assist.on') ? assistTab('chat') : renderTranscripts(el); toast('New chat started. The last one is saved in Transcripts.'); };
+  $('[data-x=all]', el) && ($('[data-x=all]', el).onclick = () => download('storesense_transcripts.txt', list.map(transcriptText).join('\n\n' + '-'.repeat(40) + '\n\n')));
+  const sq = $('.tr-search', el);
+  if (sq) sq.oninput = e => { el.dataset.q = e.target.value; clearTimeout(renderTranscripts.t); renderTranscripts.t = setTimeout(() => { renderTranscripts(el); const i = $('.tr-search', el); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 150); };
+  $$('[data-open]', el).forEach(b => b.onclick = () => renderTranscripts(el, b.dataset.open));
+}
+
+// Notes: your own notes, answers you saved, a line for every answer, and insights from the data
 function addNote(q, a, goPath) {
-  S.notes = S.notes.filter(n => n.q.toLowerCase() !== q.toLowerCase());
+  S.notes = S.notes.filter(n => n.pinned || n.q.toLowerCase() !== q.toLowerCase());
   S.notes.unshift({ t: new Date().toISOString(), q, a, go: goPath });
-  if (S.notes.length > 100) S.notes.length = 100;
+  if (S.notes.length > 150) S.notes.length = 150;
   store.set('storesense.notes', S.notes);
 }
 function renderNotes(el) {
   if (!el) return;
   const mine = store.get('storesense.mynotes', '');
+  const saved = S.notes.filter(n => n.pinned), auto = S.notes.filter(n => !n.pinned);
+  const item = n => `<li class="${n.pinned ? 'pinned' : ''}"><div class="qn-q">${esc(n.q)}<span class="muted"> · ${when(n.t)}</span></div><div class="qn-a">${n.go ? `<a class="lnk" data-go="${esc(n.go)}">${esc(n.a)}</a>` : esc(n.a)}</div><button class="qn-x" data-del="${S.notes.indexOf(n)}" aria-label="Remove note">✕</button></li>`;
   el.innerHTML = `<div class="card-h"><h2>Notes</h2><div class="tools"><button class="btn sm" data-n="copy">Copy</button><button class="btn sm" data-n="dl">Download</button></div></div>
-    <h3 class="notes-h">Insights from your data</h3>
-    <ul class="insights">${insights(S.result).map(i => `<li><a class="lnk" data-go="${i.go}">${esc(i.text)}</a></li>`).join('')}</ul>
-    <h3 class="notes-h">From your questions <span class="muted">${S.notes.length}</span></h3>
-    ${S.notes.length ? `<ul class="qnotes">${S.notes.slice(0, 30).map((n, i) => `<li><div class="qn-q">${esc(n.q)}</div><div class="qn-a">${n.go ? `<a class="lnk" data-go="${esc(n.go)}">${esc(n.a)}</a>` : esc(n.a)}</div><button class="qn-x" data-del="${i}" aria-label="Remove note">✕</button></li>`).join('')}</ul><button class="btn sm ghost" data-n="clear">Clear notes</button>` : '<p class="small muted">Each answer adds a one-line note here.</p>'}
     <h3 class="notes-h">My notes</h3>
-    <textarea class="compose mynotes" placeholder="Type your own notes. Saved in this browser.">${esc(mine)}</textarea>`;
+    <textarea class="compose mynotes" placeholder="Type your own notes. Saved in this browser as you type.">${esc(mine)}</textarea>
+    <div class="note-tools"><button class="btn sm ghost" type="button" data-n="stamp" title="Add the time and the page you are on">+ Time and page</button></div>
+    <h3 class="notes-h">Saved answers <span class="muted">${saved.length}</span></h3>
+    ${saved.length ? `<ul class="qnotes">${saved.map(item).join('')}</ul>` : '<p class="small muted">Click "+ Add to notes" under any answer to keep it here.</p>'}
+    <h3 class="notes-h">From your questions <span class="muted">${auto.length}</span></h3>
+    ${auto.length ? `<ul class="qnotes">${auto.slice(0, 30).map(item).join('')}</ul><button class="btn sm ghost" data-n="clear">Clear these</button>` : '<p class="small muted">Each answer adds a one-line note here.</p>'}
+    <h3 class="notes-h">Insights from your data</h3>
+    <ul class="insights">${insights(S.result).map(i => `<li><a class="lnk" data-go="${i.go}">${esc(i.text)}</a></li>`).join('')}</ul>`;
   $$('[data-del]', el).forEach(b => b.onclick = () => { S.notes.splice(+b.dataset.del, 1); store.set('storesense.notes', S.notes); renderNotes(el); });
-  $('.mynotes', el).oninput = e => store.set('storesense.mynotes', e.target.value);
-  const text = () => ['StoreSense notes', '', 'Insights:', ...insights(S.result).map(i => '- ' + i.text), '', 'From questions:', ...S.notes.map(n => `- ${n.q} → ${n.a}`), '', 'My notes:', store.get('storesense.mynotes', '')].join('\n');
+  const ta = $('.mynotes', el);
+  ta.oninput = e => store.set('storesense.mynotes', e.target.value);
+  $('[data-n=stamp]', el).onclick = () => { ta.value = `${ta.value.replace(/\s*$/, '')}${ta.value.trim() ? '\n\n' : ''}— ${when(new Date())} · ${pageLabel()}\n`; store.set('storesense.mynotes', ta.value); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.scrollTop = ta.scrollHeight; };
+  const text = () => ['StoreSense notes', '', 'My notes:', store.get('storesense.mynotes', ''), '', 'Saved answers:', ...saved.map(n => `- ${n.q}\n  ${n.a.replace(/\n/g, '\n  ')}`), '', 'From questions:', ...auto.map(n => `- ${n.q} → ${n.a}`), '', 'Insights:', ...insights(S.result).map(i => '- ' + i.text)].join('\n');
   $('[data-n=copy]', el).onclick = () => copy(text(), 'Notes copied');
-  $('[data-n=dl]', el).onclick = () => { const u = URL.createObjectURL(new Blob([text()], { type: 'text/plain' })); Object.assign(document.createElement('a'), { href: u, download: 'storesense_notes.txt' }).click(); setTimeout(() => URL.revokeObjectURL(u), 1000); };
-  $('[data-n=clear]', el) && ($('[data-n=clear]', el).onclick = () => { S.notes = []; store.set('storesense.notes', S.notes); renderNotes(el); });
+  $('[data-n=dl]', el).onclick = () => download('storesense_notes.txt', text());
+  $('[data-n=clear]', el) && ($('[data-n=clear]', el).onclick = () => { S.notes = S.notes.filter(n => n.pinned); store.set('storesense.notes', S.notes); renderNotes(el); });
 }
 
-// The floating assistant: same chat and notes, available on every page
+// The side panel: docked on the right of every page, like a browser's assistant sidebar
 function openAssist(tab = 'chat') {
   const p = $('#assist');
   if (!p.dataset.built) {
-    p.innerHTML = `<header class="as-h"><div class="seg-ctl" id="as-tabs"><button data-t="chat" class="on">Chat</button><button data-t="notes">Notes</button></div><span class="muted small">Rules-only · never guesses</span><button class="btn sm ghost" id="as-x" aria-label="Close">✕</button></header>
-      <div class="as-b"><div id="a-chat" class="chat">${chatHtml('a-')}</div><div id="a-notes" hidden></div></div>`;
+    p.innerHTML = `<div class="as-grip" title="Drag to resize" aria-hidden="true"></div>
+      <header class="as-h"><div class="as-brand"><svg><use href="#i-chat"/></svg><div><b>StoreSense</b><span id="as-title" class="muted small"></span></div></div>
+        <button class="btn sm ghost" id="as-new" title="New chat (the current one is saved)">+ New</button><button class="btn sm ghost" id="as-x" aria-label="Close" title="Close (Alt+A)">✕</button></header>
+      <div class="as-tabs"><div class="seg-ctl" id="as-tabs"><button data-t="chat" class="on">Chat</button><button data-t="trans">Transcripts</button><button data-t="notes">Notes</button></div></div>
+      <div class="as-ctx" id="as-ctx"></div>
+      <div class="as-b"><div id="a-chat" class="chat">${chatHtml('a-')}</div><div id="a-trans" class="as-pane" hidden></div><div id="a-notes" class="as-pane" hidden></div></div>
+      <p class="as-foot">Answers come only from your file and the rules. Chats and notes stay in this browser.</p>`;
     bindChat('a-');
     $('#as-x').onclick = closeAssist;
+    $('#as-new').onclick = () => { startConvo(); drawChat(); drawSuggestions(); assistTab('chat'); toast('New chat started. The last one is saved in Transcripts.'); };
     $$('#as-tabs button').forEach(b => b.onclick = () => assistTab(b.dataset.t));
+    const grip = $('.as-grip', p);
+    grip.onpointerdown = e => {
+      e.preventDefault(); grip.setPointerCapture(e.pointerId); document.body.classList.add('as-resizing');
+      grip.onpointermove = m => { const w = Math.max(320, Math.min(720, innerWidth - m.clientX)); document.documentElement.style.setProperty('--as-w', w + 'px'); };
+      grip.onpointerup = () => { grip.onpointermove = null; document.body.classList.remove('as-resizing'); dispatchEvent(new Event('resize')); store.set('storesense.asw', parseInt(getComputedStyle(document.documentElement).getPropertyValue('--as-w'))); };
+    };
     p.dataset.built = 1;
   }
   p.classList.add('on'); p.setAttribute('aria-hidden', 'false');
-  if (!S.chat.length) S.chat.push({ who: 'bot', html: GREETING });
+  document.body.classList.add('assist-open'); store.set('storesense.assistOpen', true);
+  setTimeout(() => dispatchEvent(new Event('resize')), 380);
+  $('#fab').classList.add('hide');
   assistTab(tab);
   drawChat(); drawSuggestions();
-  setTimeout(() => $('#a-q')?.focus(), 80);
+  setTimeout(() => tab === 'chat' && $('#a-q')?.focus(), 80);
 }
 function assistTab(t) {
   $$('#as-tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  $('#a-chat').hidden = t !== 'chat'; $('#a-notes').hidden = t !== 'notes';
+  $('#a-chat').hidden = t !== 'chat'; $('#a-notes').hidden = t !== 'notes'; $('#a-trans').hidden = t !== 'trans';
   if (t === 'notes') renderNotes($('#a-notes'));
+  if (t === 'trans') renderTranscripts($('#a-trans'));
+  if (t === 'chat') drawChat();
 }
-function closeAssist() { $('#assist').classList.remove('on'); $('#assist').setAttribute('aria-hidden', 'true'); }
+function closeAssist() {
+  $('#assist').classList.remove('on'); $('#assist').setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('assist-open'); store.set('storesense.assistOpen', false);
+  setTimeout(() => dispatchEvent(new Event('resize')), 380);
+  $('#fab').classList.toggle('hide', S.tab === 'ask');
+}
 $('#fab').onclick = () => ($('#assist').classList.contains('on') ? closeAssist() : openAssist());
+document.addEventListener('keydown', e => { if (e.altKey && e.code === 'KeyA') { e.preventDefault(); $('#assist').classList.contains('on') ? closeAssist() : openAssist(); } });
+{ const w = store.get('storesense.asw', 0); if (w) document.documentElement.style.setProperty('--as-w', w + 'px'); }
+// Reopen the panel if it was open last time (wide screens only, where it docks beside the page)
+if (store.get('storesense.assistOpen', false) && innerWidth >= 1100) { const t = setInterval(() => { if (S.result) { clearInterval(t); openAssist(); } }, 120); }
 function afterChange() { renderAll(); $('#source').textContent = `${S.source} · edited ${S.history.length}× · ${S.result.apps.length} applications`; }
 
 // ---------------- rulebook ----------------
