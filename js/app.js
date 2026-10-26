@@ -1,6 +1,6 @@
 // app.js — the expansion team's operating screen. All decisions come from engine.js.
 import { parseWorkbook } from './parse.js';
-import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES } from './engine.js';
+import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES, siteInsight, TRAFFIC } from './engine.js';
 import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
 import { pinPoint, refinePins, cityInfo, cityForPin, stateForPin, pinPlace, fetchPlaces } from './geo.js';
@@ -527,6 +527,44 @@ function answersHtml(a) {
     <div class="tbl-wrap"><table class="t raw-t"><tr><th>Question</th><th>What they wrote</th><th>We read it as</th></tr>${body}</table></div></div>`;
 }
 
+
+// Location deep-dive: traffic, potential and comparison with our stores, with the working shown
+function trafficHtml(a) {
+  const t = siteInsight(a, S.result);
+  if (!t) return '';
+  const n = v => Math.round(v).toLocaleString('en-IN');
+  const cushionCls = t.cushion >= 1.5 ? 'ok' : t.cushion >= 1 ? 'warn' : 'bad';
+  const bars = [{ label: '<b>This site</b> <span class="muted">when settled</span>', v: t.visitors, me: true }, ...t.near.map(s => ({ label: `<a class="lnk" data-go="map?pin=${s.pin}">${s.id}</a> <span class="muted">${s.km < 1 ? Math.round(s.km * 1000) + ' m' : s.km.toFixed(1) + ' km'} · ${s.years == null ? 'age unknown' : s.years + (s.years === 1 ? ' yr' : ' yrs') + ' open'}</span>`, v: s.visitors }))];
+  const max = Math.max(...bars.map(b => b.v), 1);
+  const cmp = t.basis === 'none' ? 'We have no store nearby or in a city of this size, so there is nothing fair to compare with yet.'
+    : `${t.basis === 'same-size' ? 'No store of ours within 30 km, so this compares with our stores in similar-size cities. ' : ''}This site would get <b>${Math.abs(Math.round((t.rel - 1) * 100))}% ${t.rel >= 1 ? 'more' : 'fewer'}</b> visitors than ${t.near.length === 1 ? 'that store gets' : `the average of these ${t.near.length} stores (${n(t.bench)} a day)`} today.`;
+  const rmax = Math.max(...t.ramp.map(r => r.visitors), 1);
+  const ov = t.overlap.store;
+  const overlap = !ov ? 'No store of ours to compare distance with.'
+    : t.overlap.sharePct > 0 ? `<b>${ov.id}</b> is ${ov.km < 1 ? Math.round(ov.km * 1000) + ' m' : ov.km.toFixed(1) + ' km'} away. About <b>${Math.round(t.overlap.sharePct * 100)}%</b> of this site's visitors (${n(t.overlap.shared)} a day) would be shared with it, and ${ov.id} could lose up to <b>${n(t.overlap.fromStore)}</b> visitors a day. The ${S.result.cfg.overlapKm} km rule asks for a site visit before opening.`
+    : `<b>${ov.id}</b> is ${ov.km.toFixed(1)} km away, beyond ${t.overlap.reach} km, so we expect no traffic taken from our stores.`;
+  return `<div class="sec deep"><h3>Location deep-dive <span>estimates — the working is below</span></h3>
+    <div class="deep-head"><span class="grade g-${t.grade.toLowerCase()}">${t.grade} potential</span><b class="num">${t.potential}</b><span class="muted">/100 · half location score (${a.site}), half traffic compared with our stores</span></div>
+    <div class="deep-tiles">
+      <div><span>People passing a day</span><b>${n(t.passers)}</b><em>in the shop's street and catchment</em></div>
+      <div><span>Visitors a day</span><b>${n(t.visitors)}</b><em>${(t.capture * 100).toFixed(1)}% of people passing walk in</em></div>
+      <div><span>Buyers a day</span><b>${n(t.buyers)}</b><em>${Math.round(t.conversion * 100)}% of visitors buy · ₹${n(t.bill)} average bill</em></div>
+      <div class="${cushionCls}"><span>Visitors needed to break even</span><b>${n(t.breakEven)}</b><em>${t.cushion.toFixed(1)}× cushion over break-even</em></div>
+    </div>
+    <h4>Compared with our stores</h4>
+    <div class="cmp">${bars.map(b => `<div class="cmp-row ${b.me ? 'me' : ''}"><div class="cmp-l">${b.label}</div><div class="cmp-bar"><i style="width:${(b.v / max) * 100}%"></i></div><div class="cmp-v num">${n(b.v)}</div></div>`).join('')}</div>
+    <p class="small">${cmp}</p>
+    <h4>Expected traffic in the first year</h4>
+    <div class="ramp">${t.ramp.map(r => `<div class="ramp-c"><div class="ramp-bar"><i style="height:${(r.visitors / rmax) * 100}%"></i></div><b class="num">${n(r.visitors)}</b><span>${r.label}</span><em>${lakh(r.monthlySales)}/mo</em></div>`).join('')}</div>
+    <p class="small muted">New stores build up: about 45% of settled traffic in the first three months, reaching full traffic in year two — the pattern we assume for our own stores.</p>
+    <h4>Effect on our nearby store</h4>
+    <p class="small">${overlap}</p>
+    <h4>How it's worked out</h4>
+    <table class="t drivers">${t.drivers.map(([k, v, eff]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td><td class="muted">${esc(eff)}</td></tr>`).join('')}</table>
+    <p class="small muted">The file has no footfall counts, so these are worked backwards from the sales estimate behind the payback figure, and the same model is run on our existing stores (adjusted for how long each has been open). Swap in real footfall or till data to replace them.</p>
+  </div>`;
+}
+
 // ---------------- drawer ----------------
 function openDrawer(id, keep, fromRoute) {
   const a = S.result.apps.find(x => x.id === id);
@@ -573,7 +611,7 @@ function openDrawer(id, keep, fromRoute) {
           <dt>Shoppers</dt><dd>${level(a.demand)}</dd>
           <dt>Households</dt><dd>${level(a.demographic)} ${a.demographic < cfg.minDemographic ? '<span class="tag bad">Too few</span>' : ''}</dd>
           <dt>Similar shops</dt><dd>${a.competitors} nearby ${a.competitors >= 7 ? '<span class="tag bad">Crowded</span>' : ''}</dd>
-          <dt>Location score</dt><dd><b>${a.site}</b></dd></dl></div>` : ''}
+          <dt>Location score</dt><dd><b>${a.site}</b></dd></dl></div>${trafficHtml(a)}` : ''}
       ${a.timeline ? `<div class="sec"><h3>Timeline</h3><dl class="kv"><dt>Target</dt><dd>${a.launchUsed} months</dd><dt>Earliest</dt><dd>${a.timeline.minMonths} months</dd><dt>Opening</dt><dd><b>${fmtDate(a.timeline.date)}</b></dd>${a.timeline.festival ? `<dt>Festival</dt><dd>${esc(a.timeline.festival)}</dd>` : ''}</dl></div>` : ''}
       ${a.milestones ? `<div class="sec"><h3>Steps to open <span>${Object.values(prog).filter(Boolean).length} of ${a.milestones.length} done</span></h3><div class="msl">${a.milestones.map(m => `
         <label class="ms ${prog[m.key] ? 'done' : ''}"><input type="checkbox" data-ms="${m.key}" ${prog[m.key] ? 'checked' : ''}><div><div class="t">${esc(m.label)}</div><div class="d">${esc(m.detail)} · ${esc(m.owner)}</div></div><div class="due">${fmtDate(m.due)}</div></label>`).join('')}</div>

@@ -2,7 +2,7 @@
 // applies any new information to the data, re-runs the rulebook, and explains
 // what changed. Rules decide; this file only reads the question and writes answers.
 import { normFloor, parseLakh } from './parse.js';
-import { lakh, fmtDate, PART_LABEL, WEIGHTS } from './engine.js';
+import { lakh, fmtDate, PART_LABEL, WEIGHTS, siteInsight } from './engine.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const r1 = n => Math.round(n * 10) / 10;
@@ -286,8 +286,11 @@ const GLOSSARY = {
   'royalty': 'The brand\'s share of monthly sales (6%), plus a 2% marketing fund.',
   'working capital': 'Three months of rent, staff and bills kept aside so the store can run while it builds up.',
   'empty pin': 'A pin code inside a territory with no store and no approved applicant yet: a place to find partners.',
+  'footfall': 'People who walk into a store. The file has no counts, so StoreSense estimates them from expected sales, the average bill and the share of visitors who buy.',
+  'potential': 'A 0–100 grade for a site: half its location score, half its estimated traffic compared with our nearby stores. 75+ Strong, 55+ Good, 40+ Fair.',
+  'break-even': 'The number of visitors a day a store needs so that sales cover rent, staff, bills and the brand fee.',
 };
-const TERM_ALIAS = { 'franchise partner': 'franchisee', 'partner': 'franchisee', 'cannibalization': 'cannibalisation', 'slot': 'spot', 'open slot': 'spot', 'open slots': 'spot', 'site score': 'location score', 'momentum': 'speed', 'hold': 'on hold', 'nurture': 'keep warm', 'conditional': 'conditions', 'approved with conditions': 'conditions', 'tier': 'city tier', 'free pin': 'empty pin', 'fee to brand': 'royalty', 'catchment area': 'catchment', 'payback period': 'payback' };
+const TERM_ALIAS = { 'traffic': 'footfall', 'foot traffic': 'footfall', 'site potential': 'potential', 'break even': 'break-even', 'franchise partner': 'franchisee', 'partner': 'franchisee', 'cannibalization': 'cannibalisation', 'slot': 'spot', 'open slot': 'spot', 'open slots': 'spot', 'site score': 'location score', 'momentum': 'speed', 'hold': 'on hold', 'nurture': 'keep warm', 'conditional': 'conditions', 'approved with conditions': 'conditions', 'tier': 'city tier', 'free pin': 'empty pin', 'fee to brand': 'royalty', 'catchment area': 'catchment', 'payback period': 'payback' };
 
 const PAGE_WORDS = [
   [/home|overview|dashboard|start/, 'overview', 'Home'], [/to-?do|feed|list|leads|who to call/, 'feed', 'To-do'], [/territor|areas|zones/, 'territories', 'Territories'],
@@ -328,6 +331,12 @@ const METRICS = [
 function personFact(x, s, res) {
   const L = (t, go) => `<a class="lnk" data-go="${go}">${esc(t)}</a>`;
   const cfg = res.cfg;
+  if (/traffic|footfall|visitor|people passing|walk.?in|potential|busy|crowd|break.?even|cannibal|take .*from/.test(s)) {
+    const t = siteInsight(x, res);
+    if (!t) return `${esc(x.name)} is on hold, so there is no confirmed site to estimate traffic for yet.`;
+    const ov = t.overlap.store;
+    return `<b>${t.grade} potential (${t.potential}/100)</b> for ${esc(x.name)}'s site. About <b>${t.passers.toLocaleString('en-IN')}</b> people pass a day, <b>${t.visitors}</b> would visit and <b>${t.buyers}</b> buy once the store settles (break-even needs ${t.breakEven} visitors, a ${t.cushion.toFixed(1)}× cushion). First year: ${t.ramp.map(r => `${r.label} ${r.visitors}/day`).join(', ')}.${t.bench ? ` Our ${t.basis === 'nearby' ? 'nearby' : 'similar-city'} stores average ${t.bench}/day today.` : ' No comparable store of ours yet.'}${ov && t.overlap.sharePct ? ` It would share about ${Math.round(t.overlap.sharePct * 100)}% of its visitors with ${L(ov.id, `map?pin=${ov.pin}`)} (${ov.km.toFixed(1)} km away).` : ''} <span class="muted">Estimates — the file has no footfall counts; worked out from the sales estimate.</span>`;
+  }
   if (/payback|earn.* back/.test(s)) return isFinite(x.payback) ? `${esc(x.name)} would earn the money back in about <b>${Math.round(x.payback)} months</b> (goal: ${cfg.maxPayback}). Needs ${lakh(x.needed)}; keeps about ${lakh(x.contribution)} a month after costs and the brand fee.` : `${esc(x.name)}'s store would not cover its monthly costs at this size, so it never earns the money back.`;
   if (/money|invest|budget|capital|fund|short/.test(s)) return `${esc(x.name)} can invest <b>${lakh(x.invest)}</b> and needs <b>${lakh(x.needed)}</b>${x.gap ? `, so is short by ${lakh(x.gap)}` : ', so has enough'}.`;
   if (/experience|years/.test(s)) return `${esc(x.name)} has <b>${x.exp ?? 'unknown'} years</b> running or managing a shop (${esc(x.business || 'work not given')}).`;

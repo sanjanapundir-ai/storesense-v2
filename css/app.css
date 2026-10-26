@@ -797,3 +797,38 @@ dd.pins a.lnk.pin:hover { background: color-mix(in srgb, var(--accent) 22%, tran
 .raw-t .blank { color: var(--muted); font-style: italic; font-size: 13px; }
 .raw-t .readas { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-ink); white-space: nowrap; }
 .raw-t tr:nth-child(even) td, .raw-t tr:nth-child(even) th { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+
+/* Location deep-dive */
+.deep h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+.deep-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.deep-head b { font-size: 28px; line-height: 1; }
+.grade { font-size: 12px; font-weight: 700; border-radius: 99px; padding: 3px 10px; }
+.g-strong { background: color-mix(in srgb, var(--good) 20%, transparent); color: color-mix(in srgb, var(--good) 70%, var(--text)); }
+.g-good { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent-ink); }
+.g-fair { background: color-mix(in srgb, var(--warning) 22%, transparent); color: color-mix(in srgb, var(--warning) 60%, var(--text)); }
+.g-weak { background: color-mix(in srgb, var(--critical) 18%, transparent); color: var(--critical); }
+.deep-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.deep-tiles > div { padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); display: grid; gap: 2px; }
+.deep-tiles span { font-size: 12px; color: var(--text-2); }
+.deep-tiles b { font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.deep-tiles em { font-style: normal; font-size: 11px; color: var(--muted); }
+.deep-tiles .ok b { color: color-mix(in srgb, var(--good) 70%, var(--text)); }
+.deep-tiles .warn b { color: color-mix(in srgb, var(--warning) 70%, var(--text)); }
+.deep-tiles .bad b { color: var(--critical); }
+.cmp { display: grid; gap: 8px; margin-bottom: 8px; }
+.cmp-row { display: grid; grid-template-columns: minmax(0, 1.3fr) 1fr 40px; gap: 10px; align-items: center; font-size: 13px; }
+.cmp-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp-bar { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.cmp-bar i { display: block; height: 100%; border-radius: 99px; background: var(--muted); transform-origin: left; animation: grow .7s cubic-bezier(.2,.7,.2,1); }
+.cmp-row.me .cmp-bar i { background: linear-gradient(90deg, #2f6fe6, #6fa2ff); }
+.cmp-v { text-align: right; font-weight: 600; }
+.ramp { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; margin-bottom: 6px; }
+.ramp-c { display: grid; gap: 2px; justify-items: center; text-align: center; font-size: 12px; }
+.ramp-bar { width: 100%; height: 90px; display: flex; align-items: flex-end; justify-content: center; }
+.ramp-bar i { display: block; width: 60%; border-radius: 8px 8px 3px 3px; background: linear-gradient(180deg, #6fa2ff, #2f6fe6); animation: rise-bar .7s cubic-bezier(.2,.7,.2,1); transform-origin: bottom; }
+@keyframes rise-bar { from { transform: scaleY(0); } }
+.ramp-c b { font-size: 16px; }
+.ramp-c span { color: var(--text-2); }
+.ramp-c em { font-style: normal; color: var(--muted); font-size: 11px; }
+.drivers th[scope=row] { color: var(--text-2); font-weight: 500; white-space: nowrap; width: 1%; padding-right: 12px; text-transform: none; letter-spacing: 0; font-size: 13px; }
+.drivers td { font-size: 13px; }

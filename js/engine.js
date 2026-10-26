@@ -592,4 +592,71 @@ export function poolAt(apps, tier, minInvest, minExp) {
   return { meet: live.filter(x => x.invest >= minInvest && (x.exp ?? 0) >= minExp).length, of: live.length };
 }
 
+// ---------------- Location deep-dive: traffic, potential, comparison with our stores ----------------
+// No footfall counts are in the file, so traffic is worked backwards from the same sales estimate
+// that drives payback, then compared with the same model run on our existing stores.
+export const TRAFFIC = {
+  bill: { 1: 1400, 2: 1100, 3: 900 },   // average spend per buyer, ₹
+  conversion: 0.35,                    // share of visitors who buy
+  capture: 0.06,                       // share of people passing who walk in, before competition
+  ramp: [['Months 1–3', 0.45], ['Months 4–6', 0.65], ['Months 7–12', 0.85], ['Year 2 on', 1]],
+  maturity: y => (y < 1 ? 0.6 : y < 2 ? 0.85 : 1),
+  shareAtStore: 0.3,                   // most a store right next door could share
+};
+function trafficFromSales(salesL, tier, competitors) {
+  const bill = TRAFFIC.bill[tier] || 1100;
+  const buyers = (salesL * 1e5) / 30 / bill;
+  const visitors = buyers / TRAFFIC.conversion;
+  const capture = TRAFFIC.capture * (1 - Math.min(0.3, 0.03 * competitors));
+  return { bill, buyers, visitors, capture, passers: visitors / capture };
+}
+export function siteInsight(x, res) {
+  if (!x || !x.point || x.monthlySales == null || x.decision === 'hold' || x.withdrawn) return null;
+  const cfg = res.cfg, yearNow = res.asOf.getFullYear();
+  const t = trafficFromSales(x.monthlySales, x.tier, x.competitors);
+  const all = res.stores.filter(s => s.point).map(s => ({ s, d: km(x.point, s.point), tier: cityInfo(s.city)?.tier || guessTier(s.city) || x.tier })).sort((a, b) => a.d - b.d);
+  // Compare with our stores nearby; if none within 30 km, with our stores in same-size cities; otherwise say there is nothing comparable
+  let basis = 'nearby', pick = all.filter(o => o.d <= 30);
+  if (!pick.length) { pick = all.filter(o => o.tier === x.tier); basis = pick.length ? 'same-size' : 'none'; }
+  const near = pick.slice(0, 3).map(({ s, d, tier }) => {
+    const px = pinProxy(s.pin, tier), e = ECON[tier] || ECON[2];
+    const sales = (e.salesSqft * 500 * (0.75 + 0.5 * px.demand)) / 1e5;
+    const mature = trafficFromSales(sales, tier, px.competitors).visitors;
+    const years = s.opened ? Math.max(0, yearNow - s.opened) : null;
+    return { id: s.id, pin: String(s.pin), city: s.city, km: d, years, mature: Math.round(mature), visitors: Math.round(mature * TRAFFIC.maturity(years ?? 3)) };
+  });
+  const bench = near.length ? near.reduce((n, b) => n + b.visitors, 0) / near.length : null;
+  const closest = all[0] ? { id: all[0].s.id, pin: String(all[0].s.pin), km: all[0].d, visitors: near.find(n => n.id === all[0].s.id)?.visitors ?? null } : null;
+  const reach = cfg.overlapKm * 2;
+  const sharePct = closest && closest.km < reach ? TRAFFIC.shareAtStore * (1 - closest.km / reach) : 0;
+  const shared = Math.round(t.visitors * sharePct);
+  const net = t.visitors - shared;
+  const fromStore = closest && sharePct ? Math.round(closest.visitors != null ? Math.min(closest.visitors * 0.5, shared) : shared) : 0;
+  const netMargin = MARGIN.gross - MARGIN.royalty - MARGIN.marketing;
+  const beBuyers = (x.monthlyFixed * 1e5) / 30 / (t.bill * netMargin);
+  const beVisitors = beBuyers / TRAFFIC.conversion;
+  const rel = bench ? net / bench : 1;
+  const potential = Math.round(Math.max(0, Math.min(100, 0.5 * x.site + 0.5 * Math.min(100, rel * 70))));
+  const e = ECON[x.tier] || ECON[2];
+  const floorMult = x.floorStd === 'Mall unit' ? 1.15 : x.floorStd === 'Upper' ? 0.8 : 1;
+  return {
+    passers: Math.round(t.passers), visitors: Math.round(net), grossVisitors: Math.round(t.visitors), buyers: Math.round(net * TRAFFIC.conversion),
+    bill: t.bill, capture: t.capture, conversion: TRAFFIC.conversion,
+    breakEven: Math.round(beVisitors), cushion: net / beVisitors,
+    ramp: TRAFFIC.ramp.map(([label, f]) => ({ label, visitors: Math.round(net * f), monthlySales: Math.round(x.monthlySales * f * 10) / 10 })),
+    near, basis, bench: bench ? Math.round(bench) : null, rel,
+    overlap: { store: closest || null, sharePct, shared, fromStore, reach },
+    potential, grade: potential >= 75 ? 'Strong' : potential >= 55 ? 'Good' : potential >= 40 ? 'Fair' : 'Weak',
+    drivers: [
+      ['City size', `Tier ${x.tier}`, `₹${e.salesSqft.toLocaleString('en-IN')} sales per sq ft a month to start from`],
+      ['Shoppers nearby', x.demand.toFixed(2), `sales × ${(0.75 + 0.5 * x.demand).toFixed(2)}`],
+      ['Floor', x.floorStd, `sales × ${floorMult}`],
+      ['Shop size', `${x.sizeUsed} sq ft${x.sizeAssumed ? ' (assumed)' : ''}`, `₹${Math.round(x.monthlySales * 1e5 / 30).toLocaleString('en-IN')} sales a day`],
+      ['Average bill', `₹${t.bill.toLocaleString('en-IN')}`, `${Math.round(t.buyers)} buyers a day`],
+      ['Visitors who buy', `${Math.round(TRAFFIC.conversion * 100)}%`, `${Math.round(t.visitors)} visitors a day`],
+      ['Similar shops nearby', String(x.competitors), `${(t.capture * 100).toFixed(1)}% of people passing walk in`],
+    ],
+  };
+}
+
 export { cityKey };
