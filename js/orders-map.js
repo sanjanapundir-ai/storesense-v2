@@ -1,8 +1,11 @@
-// orders-map.js — Bengaluru order heatmap: where orders come from today, where we lose them, and what a new store
-// would change. Same simulated order data and views as the Expansion Console (data/blr-*.json), drawn on a flat
-// MapLibre map: pins shaded per view, routes to stores, store load rings and a side panel with the numbers.
+// orders-map.js — order heatmap for any city: where orders come from today, where we lose them, and what a new store
+// would change. Bengaluru uses the console's pre-built simulated orders (data/blr-*.json) when the file has the same five
+// stores; every other city is simulated in the browser with the same model (orders-sim.js). Karnataka pins are drawn
+// with their real boundaries (data/ka-pins.geojson); elsewhere each pin is an approximate circle around its centre.
 
 import { STYLE_URL, themeStyle } from './map3d.js';
+import { simulateCity } from './orders-sim.js';
+import { cityInfo, cityForPin, fetchPlaces, guessTier, km as kmBetween, pinPoint, pinPlace } from './geo.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const n0 = v => Math.round(v).toLocaleString('en-IN');
@@ -45,29 +48,97 @@ function offset(a, b, metres) {
   return [[a[0] + ox / kx, a[1] + oy / 111320], [b[0] + ox / kx, b[1] + oy / 111320]];
 }
 
-let dataPromise = null;
-function loadData() {
-  dataPromise ||= Promise.all(['blr-flows.json', 'blr-pins.geojson', 'blr-potential.json', 'blr-catchment.json'].map(f => fetch(`data/${f}`).then(r => { if (!r.ok) throw new Error(`${f}: ${r.status}`); return r.json(); })))
-    .then(([flows, shapes, potential, catchment]) => ({ flows, shapes, potential: potential.pins, catchment }))
-    .catch(e => { dataPromise = null; throw e; });
-  return dataPromise;
+const getJson = f => fetch(`data/${f}`).then(r => { if (!r.ok) throw new Error(`${f}: ${r.status}`); return r.json(); });
+let blrPromise = null, kaPromise = null;
+const loadBlr = () => (blrPromise ||= Promise.all(['blr-flows.json', 'blr-pins.geojson', 'blr-potential.json', 'blr-catchment.json'].map(getJson))
+  .then(([flows, shapes, potential, catchment]) => ({ flows, shapes, potential: potential.pins, catchment, simulated: false }))
+  .catch(e => { blrPromise = null; throw e; }));
+const loadKa = () => (kaPromise ||= Promise.all([getJson('ka-pins.json'), getJson('ka-pins.geojson')]).then(([pins, shapes]) => ({ pins, shapes })).catch(() => ({ pins: [], shapes: { features: [] } })));
+const BLR_STORE_PINS = ['560001', '560034', '560038', '560066', '560076'];
+
+/** Every city in the file with applicants, territories or stores (the same list as the 3D map), biggest first. */
+export function orderCities(res) {
+  const n = new Map(), add = c => { if (c && c !== '—') n.set(c, (n.get(c) || 0) + 1); };
+  res.territories.forEach(t => add(t.city)); res.stores.forEach(s => add(s.city)); res.apps.forEach(a => a.point && add(a.cityName));
+  return [...n.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c);
+}
+
+const cache = new Map();
+/** Order data for one city, shaped like the Bengaluru files: { flows, shapes, potential, catchment, simulated }. */
+export async function loadCityData(city, res) {
+  const cityStores = res.stores.filter(s => s.point && (s.city === city));
+  const sig = `${city}|${cityStores.map(s => `${s.id}@${s.pin}`).join(',')}`;
+  if (cache.has(sig)) return cache.get(sig);
+  let out;
+  if (city === 'Bengaluru' && cityStores.length === BLR_STORE_PINS.length && cityStores.every(s => BLR_STORE_PINS.includes(String(s.pin)))) out = await loadBlr();
+  else {
+    const ka = await loadKa();
+    const kaPins = ka.pins.filter(p => p.city === city);
+    const pins = kaPins.map(p => ({ pin: p.pin, name: p.name, lat: p.lat, lng: p.lng }));
+    const seen = new Set(pins.map(p => p.pin));
+    const filePins = [...res.territories.filter(t => t.city === city).flatMap(t => t.pins), ...res.apps.filter(a => a.cityName === city).map(a => String(a.assignedPin || a.pin || '')), ...cityStores.map(s => String(s.pin))];
+    // Only pins that belong to this city: by pin prefix where we know it, else within 40 km of the city centre
+    // (an applicant who wrote "Mysuru" with a Bengaluru pin is on hold for that, and stays off Mysuru's map).
+    const centre = cityInfo(city);
+    const belongs = pin => { const c = cityForPin(pin); if (c) return c.name === city; const pt = pinPoint(pin, city); return !centre || !pt || kmBetween(pt, centre) <= 40; };
+    for (const pin of filePins) {
+      if (!/^\d{6}$/.test(pin) || seen.has(pin) || !belongs(pin)) continue;
+      seen.add(pin);
+      const pt = pinPoint(pin, city);
+      if (pt) pins.push({ pin, name: pinPlace(pin)?.name || '', lat: pt.lat, lng: pt.lng });
+    }
+    const tier = cityInfo(city)?.tier || guessTier(city) || 2;
+    const stores = cityStores.map(s => { const kp = kaPins.find(p => p.pin === String(s.pin)); return { id: s.id, pin: String(s.pin), area: kp?.name || pinPlace(s.pin)?.name || s.city, lat: kp ? kp.lat : s.point.lat, lng: kp ? kp.lng : s.point.lng }; });
+    const sim = simulateCity({ city, pins, stores, tier, asOf: res.cfg?.asOf });
+    // Pin areas: real boundaries where we have them, else a circle sized to the gap to the nearest other pin
+    const real = new Set(kaPins.map(p => p.pin));
+    const feats = ka.shapes.features.filter(f => f.properties.city === city).map(f => ({ ...f, properties: { pin: f.properties.pin } }));
+    for (const p of pins) {
+      if (real.has(p.pin)) continue;
+      const nn = Math.min(...pins.filter(q => q !== p).map(q => Math.hypot((q.lat - p.lat) * 110.6, (q.lng - p.lng) * 111.3 * Math.cos((p.lat * Math.PI) / 180))), 4);
+      feats.push({ type: 'Feature', properties: { pin: p.pin }, geometry: { type: 'Polygon', coordinates: [ring(p.lng, p.lat, Math.min(2, Math.max(0.4, nn * 0.48)), 40)] } });
+    }
+    out = { ...sim, shapes: { type: 'FeatureCollection', features: feats }, simulated: true, approxShapes: pins.some(p => !real.has(p.pin)), tier };
+  }
+  cache.set(sig, out);
+  return out;
 }
 
 export class OrdersMap {
-  /** stage: element for the map; side: element for the panel; opts: { dark, getResult, openApp, overlapKm } */
+  /** stage: element for the map; side: element for the panel; opts: { dark, getResult, openApp, overlapKm, city } */
   constructor(stage, side, opts) {
     this.stage = stage; this.side = side; this.o = opts;
     this.mode = 'traffic'; this.selStore = null; this.selPin = null; this.ready = false; this.markers = [];
     stage.innerHTML = '<div class="om-map"></div><div class="om-legend"></div>';
-    this.side.innerHTML = '<div class="card"><p class="muted">Loading Bengaluru order data…</p></div>';
-    loadData().then(d => { this.d = d; this.byPin = Object.fromEntries(d.potential.map(p => [p.pin, p])); this.initMap(); })
-      .catch(() => { this.side.innerHTML = '<div class="card"><p>The Bengaluru order data could not load. Check the connection and reload.</p></div>'; });
+    this.initMap();
+    this.setCity(opts.city || 'Bengaluru');
+  }
+
+  /** Switch the heatmap to a city (loads or simulates its order data). Returns a promise. */
+  setCity(city) {
+    const res = this.o.getResult(), cities = orderCities(res);
+    if (!cities.includes(city)) city = cities.includes('Bengaluru') ? 'Bengaluru' : cities[0] || 'Bengaluru';
+    this.city = city; this.selStore = null; this.selPin = null; this.d = null;
+    this.side.innerHTML = `<div class="card"><p class="muted">Working out orders for ${esc(city)}…</p></div>`;
+    return (this.loading = loadCityData(city, res).then(d => {
+      if (this.city !== city) return;
+      this.d = d; this.byPin = Object.fromEntries(d.potential.map(p => [p.pin, p]));
+      this.fit(); this.render();
+      // Area names outside Karnataka come from India Post's pin service; fill them in when they arrive
+      const missing = d.potential.filter(p => !p.name).map(p => p.pin);
+      if (missing.length) fetchPlaces(missing, () => { d.potential.forEach(p => { p.name ||= pinPlace(p.pin)?.name || ''; }); if (this.city === city) this.render(); });
+    }).catch(() => { this.side.innerHTML = '<div class="card"><p>The order data could not load. Check the connection and reload.</p></div>'; }));
+  }
+
+  fit() {
+    if (!this.map || !this.d?.potential.length) return;
+    const lats = this.d.potential.map(p => p.lat), lngs = this.d.potential.map(p => p.lng);
+    this.map.fitBounds([[Math.min(...lngs) - 0.03, Math.min(...lats) - 0.03], [Math.max(...lngs) + 0.03, Math.max(...lats) + 0.03]], { padding: 30, duration: 0, maxZoom: 13 });
   }
 
   initMap() {
-    if (!globalThis.maplibregl) { this.stage.querySelector('.om-map').innerHTML = '<div class="empty" style="height:100%;display:grid;place-items:center">The map could not load. Check the internet connection and reload.</div>'; this.render(); return; }
-    const lats = this.d.potential.map(p => p.lat), lngs = this.d.potential.map(p => p.lng);
-    const bounds = [[Math.min(...lngs) - 0.03, Math.min(...lats) - 0.03], [Math.max(...lngs) + 0.03, Math.max(...lats) + 0.03]];
+    if (!globalThis.maplibregl) { this.stage.querySelector('.om-map').innerHTML = '<div class="empty" style="height:100%;display:grid;place-items:center">The map could not load. Check the internet connection and reload.</div>'; return; }
+    const bounds = [[77.35, 12.8], [77.8, 13.15]];
     fetch(STYLE_URL, { signal: AbortSignal.timeout(15000) }).then(r => r.json()).then(style => {
       const m = this.map = new maplibregl.Map({ container: this.stage.querySelector('.om-map'), style: themeStyle(style, this.o.dark), bounds, attributionControl: { compact: true } });
       m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
@@ -91,9 +162,10 @@ export class OrdersMap {
         m.on('click', 'om-pins-fill', e => { if (m.queryRenderedFeatures(e.point, { layers: ['om-points'] }).length) return; const pin = e.features?.[0]?.properties.pin; if (pin) this.selectPin(pin); });
         m.on('click', 'om-points', e => { const id = e.features?.[0]?.properties.id; if (id) this.o.openApp(id); });
         this.ready = true;
+        this.fit();
         this.render();
       });
-    }).catch(() => { this.stage.querySelector('.om-map').innerHTML = '<div class="empty" style="height:100%;display:grid;place-items:center">The map tiles could not load. Check the internet connection.</div>'; this.render(); });
+    }).catch(() => { this.stage.querySelector('.om-map').innerHTML = '<div class="empty" style="height:100%;display:grid;place-items:center">The map tiles could not load. Check the internet connection.</div>'; });
   }
 
   setMode(m) { this.mode = m; this.selStore = null; this.selPin = null; this.render(); }
@@ -102,11 +174,12 @@ export class OrdersMap {
   simulate(pin) { this.mode = 'plan'; this.selStore = null; this.selPin = pin; this.render(); }
   resize() { this.map?.resize(); }
 
-  pinName(pin) { return this.byPin[pin]?.name || ''; }
+  pinName(pin) { return this.byPin[pin]?.name || pinPlace(pin)?.name || ''; }
   storeName(id) { const s = this.d.flows.stores.find(x => x.id === id); return AREA[id] || s?.area || id; }
 
   render() {
     if (!this.d) return;
+    if (!this.d.potential.length) { this.side.innerHTML = `<div class="card"><p>No pin codes for ${esc(this.city)} in this file yet, so there is nothing to map.</p></div>`; return; }
     this.renderSide();
     this.renderLegend();
     if (!this.ready) return;
@@ -115,30 +188,35 @@ export class OrdersMap {
     const storePos = Object.fromEntries(flows.stores.map(s => [s.id, [s.lng, s.lat]]));
     const pinPos = pin => (this.byPin[pin] ? [this.byPin[pin].lng, this.byPin[pin].lat] : null);
 
-    // pin shading
+    // pin shading; simulated cities are stretched over the full colour range so a small city's busiest pins still read dark
+    const mx = f => Math.max(1, ...this.d.potential.map(f));
+    const k = this.d.simulated ? {
+      traffic: 140 / mx(p => (flows.pins[p.pin]?.store || 0) + (flows.pins[p.pin]?.online || 0)), leaks: 60 / mx(p => p.missed_orders_month),
+      plan: 210 / mx(p => (p.verdict === 'Existing store here' ? 0 : p.incremental_orders_month)), feed: cand ? 60 / Math.max(1, ...cand.flows.map(x => x.takenPerMonth + x.newPerMonth)) : 1,
+    } : { traffic: 1, leaks: 1, plan: 1, feed: 1 };
     const feats = shapes.features.map(f => {
       const pin = f.properties.pin, fp = flows.pins[pin], pp = this.byPin[pin], name = `${pin} ${this.pinName(pin)}`, emph = pin === sel;
       let fill = '#e5e7eb', op = 0.15, tip = name;
       if (mode === 'traffic') {
         if (this.selStore) {
           const v = flows.baseline.find(b => b.pin === pin && b.store === this.selStore)?.perMonth ?? 0;
-          if (v > 0) { fill = color(SCALE.feed, v); op = 0.75; tip = `${name}<br>${v} orders/mo to ${this.selStore}`; } else tip = `${name}<br>no orders to ${this.selStore}`;
+          if (v > 0) { fill = color(SCALE.feed, v * k.feed); op = 0.75; tip = `${name}<br>${v} orders/mo to ${this.selStore}`; } else tip = `${name}<br>no orders to ${this.selStore}`;
         } else {
           const v = fp ? fp.store + fp.online : 0;
-          fill = color(SCALE.traffic, v); op = sel && !emph ? 0.3 : 0.62;
+          fill = color(SCALE.traffic, v * k.traffic); op = sel && !emph ? 0.3 : 0.62;
           tip = fp ? `${name}<br><b>${v}</b> orders/mo (${fp.store} in store, ${fp.online} online)` : `${name}<br>no order data`;
         }
       } else if (mode === 'leaks') {
         const v = pp?.missed_orders_month ?? 0;
-        fill = color(SCALE.leaks, v); op = sel && !emph ? 0.35 : 0.74;
+        fill = color(SCALE.leaks, v * k.leaks); op = sel && !emph ? 0.35 : 0.74;
         tip = pp ? `${name}<br><b>${v}</b> missed orders/mo (${lakh(pp.missed_sales_lakh_month)})<br>${pp.redirected_orders_month} travel more than 4 km` : name;
       } else if (cand) {
         const fl = cand.flows.find(x => x.pin === pin), v = fl ? fl.takenPerMonth + fl.newPerMonth : 0;
-        if (v > 0 || emph) { fill = color(SCALE.feed, v); op = 0.75; tip = fl ? `${name}<br>${fl.newPerMonth} new + ${fl.takenPerMonth} from ${fl.fromStore} per month` : name; } else tip = `${name}<br>not in this store's catchment`;
+        if (v > 0 || emph) { fill = color(SCALE.feed, v * k.feed); op = 0.75; tip = fl ? `${name}<br>${fl.newPerMonth} new + ${fl.takenPerMonth} from ${fl.fromStore} per month` : name; } else tip = `${name}<br>not in this store's catchment`;
       } else {
         const existing = pp?.verdict === 'Existing store here', v = existing ? 0 : pp?.incremental_orders_month ?? 0;
-        fill = existing ? '#d1d5db' : color(SCALE.plan, v); op = 0.72;
-        tip = !pp ? name : existing ? `${name}<br>existing store` : `${name}<br>+${v} new orders/mo · payback ${pp.payback_months ?? '—'} mo`;
+        fill = existing ? '#d1d5db' : color(SCALE.plan, v * k.plan); op = 0.72;
+        tip = !pp ? name : existing ? `${name}<br>existing store` : `${name}<br>+${v} new orders/mo · payback ${pp.payback_months == null ? '—' : pp.payback_months > 120 ? 'over 10 years' : pp.payback_months + ' mo'}`;
       }
       return { type: 'Feature', geometry: f.geometry, properties: { pin, fill, op, sel: emph, tip } };
     });
@@ -180,7 +258,7 @@ export class OrdersMap {
 
     // approved franchises from the current decisions
     const res = this.o.getResult();
-    const pts = (res?.apps || []).filter(a => a.bucket === 'ready' && a.point && a.cityName === 'Bengaluru')
+    const pts = (res?.apps || []).filter(a => a.bucket === 'ready' && a.point && a.cityName === this.city)
       .map(a => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [a.point.lng, a.point.lat] }, properties: { id: a.id, color: '#16a34a', tip: `${esc(a.id)} ${esc(a.name)}<br>suggested yes · pin ${esc(a.assignedPin || a.pin)}<br>Click to open` } }));
     m.getSource('om-points').setData({ type: 'FeatureCollection', features: pts });
 
@@ -222,9 +300,13 @@ export class OrdersMap {
     const { flows, potential } = this.d, mode = this.mode, sel = this.selPin;
     const row = (l, v, strong) => `<div class="om-row${strong ? ' strong' : ''}"><span>${l}</span><span>${v}</span></div>`;
     const sec = (title, note, body, action = '') => `<div class="card om-card"><div class="om-h"><div><h2>${title}</h2>${note ? `<p class="small muted">${note}</p>` : ''}</div>${action}</div>${body}</div>`;
-    const tabs = `<div class="seg-ctl om-modes">${MODES.map(([k, l]) => `<button data-om="${k}" class="${k === mode ? 'on' : ''}">${l}</button>`).join('')}</div><p class="small muted om-intro">${INTRO[mode]}</p>`;
+    const cities = orderCities(this.o.getResult());
+    const picker = `<label class="om-cityrow"><span class="small muted">City</span><select class="om-city">${cities.map(c => `<option${c === this.city ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select></label>`;
+    const tabs = picker + `<div class="seg-ctl om-modes">${MODES.map(([k, l]) => `<button data-om="${k}" class="${k === mode ? 'on' : ''}">${l}</button>`).join('')}</div><p class="small muted om-intro">${INTRO[mode]}</p>`;
     let html = tabs;
-    const src = `<p class="small muted om-src">Simulated online and store orders, ${esc(flows.meta.window)}, scaled so today's stores match the Tier 1 sales assumption. Bengaluru only.</p>`;
+    const src = this.d.simulated
+      ? `<p class="small muted om-src">Estimated orders for ${esc(this.city)} (Tier ${this.d.tier}): pin demand from city size and pin, ${flows.stores.length ? `scaled so today's ${flows.stores.length === 1 ? 'store matches' : 'stores match'} the Tier ${this.d.tier} sales assumption` : 'scaled so the best site matches the Tier ' + this.d.tier + ' sales assumption'}. Same model as the Bengaluru order data; replaced by real orders per pin in the pilot.${this.d.approxShapes ? ' Circles are approximate pin areas.' : ''}</p>`
+      : `<p class="small muted om-src">Simulated online and store orders, ${esc(flows.meta.window)}, scaled so today's stores match the Tier 1 sales assumption.</p>`;
     if (mode === 'traffic') {
       if (sel && flows.pins[sel]) {
         const fp = flows.pins[sel], to = flows.baseline.filter(b => b.pin === sel && b.perMonth > 0).sort((a, b) => b.perMonth - a.perMonth);
@@ -232,6 +314,9 @@ export class OrdersMap {
       } else if (this.selStore) {
         const s = flows.stores.find(x => x.id === this.selStore), c = this.d.catchment.find(x => x.store_id === s.id), top = flows.baseline.filter(b => b.store === s.id).sort((a, b) => b.perMonth - a.perMonth).slice(0, 8);
         html += sec(`${s.id} ${esc(this.storeName(s.id))}`, s.utilisation_pct >= HEAVY ? '<b style="color:#b91c1c">Heavy lifter</b>: at 75% of capacity or more' : 'Isolated on the map', row('Orders per month', n0(s.load_per_month), true) + row('Capacity used (of 600/mo)', `${s.utilisation_pct}%`) + (c ? row('80% of customers live within', km(c.p80_customer_km)) + row('Average customer distance', km(c.avg_customer_km)) : '') + `<p class="small muted om-sub">Top pins it serves</p>${top.map(b => row(`${b.pin} ${esc(this.pinName(b.pin))}`, `${b.perMonth}/mo`)).join('')}`, '<button class="btn sm ghost" data-clear>All stores</button>');
+      } else if (!flows.stores.length) {
+        const missed = potential.reduce((a, x) => a + x.missed_orders_month, 0);
+        html += sec(`No store of ours in ${esc(this.city)} yet`, '', `<p class="small">Every in-store purchase here is missed today: about <b>${n0(missed)}</b> orders a month go online or nowhere. Use <b>Plan a new store</b> to see where the first store would win the most.</p>`);
       } else {
         const stores = [...flows.stores].sort((a, b) => b.utilisation_pct - a.utilisation_pct), heavy = stores.filter(s => s.utilisation_pct >= HEAVY);
         const online = Object.values(flows.pins).reduce((x, p) => x + p.online, 0);
@@ -241,17 +326,18 @@ export class OrdersMap {
     } else if (mode === 'leaks') {
       const p = sel ? this.byPin[sel] : null;
       if (p) html += sec(`${p.pin} ${esc(p.name)}`, '', row('Missed orders per month', n0(p.missed_orders_month), true) + row('Missed sales per month', lakh(p.missed_sales_lakh_month), true) + row('Orders travelling more than 4 km', `${n0(p.redirected_orders_month)}/mo`) + row('Nearest store', `${p.nearest_store_id} · ${km(p.nearest_store_km)}`) + (p.redirected_to.some(r => r.ordersPerMonth > 0) ? `<p class="small muted om-sub">Far stores these customers travel to</p>${p.redirected_to.filter(r => r.ordersPerMonth > 0).map(r => row(`${r.store} ${esc(this.storeName(r.store))}`, `${n0(r.ordersPerMonth)} orders/mo`)).join('')}` : '') + (p.verdict !== 'Existing store here' ? `<button class="btn primary om-wide" data-sim="${p.pin}">Simulate a new store here →</button>` : ''), '<button class="btn sm ghost" data-clear>All pins</button>');
-      html += sec('Total leak in Bengaluru', "Customers who would buy in a store if one were in their pin, but don't today.", row('Missed orders per month', n0(potential.reduce((a, x) => a + x.missed_orders_month, 0)), true) + row('Missed sales per month', lakh(potential.reduce((a, x) => a + x.missed_sales_lakh_month, 0)), true) + row('Orders travelling more than 4 km (at risk)', `${n0(potential.reduce((a, x) => a + x.redirected_orders_month, 0))}/mo`));
+      html += sec(`Total leak in ${esc(this.city)}`, "Customers who would buy in a store if one were in their pin, but don't today.", row('Missed orders per month', n0(potential.reduce((a, x) => a + x.missed_orders_month, 0)), true) + row('Missed sales per month', lakh(potential.reduce((a, x) => a + x.missed_sales_lakh_month, 0)), true) + row('Orders travelling more than 4 km (at risk)', `${n0(potential.reduce((a, x) => a + x.redirected_orders_month, 0))}/mo`));
       const top = [...potential].sort((a, b) => b.missed_sales_lakh_month - a.missed_sales_lakh_month || a.pin.localeCompare(b.pin)).slice(0, 10);
       html += sec('Top 10 leaking pins', 'Missed sales per month. Click a pin to see where its customers go.', top.map(x => `<button class="om-item${x.pin === sel ? ' on' : ''}" data-pin="${x.pin}"><span>${x.pin} ${esc(x.name)}</span><span>${n0(x.missed_orders_month)} orders · <b>${lakh(x.missed_sales_lakh_month)}</b></span></button>`).join(''));
     } else {
       const p = sel ? this.byPin[sel] : null, cand = sel ? flows.candidates[sel] : null;
       if (p) html += this.impact(p, cand, row, sec);
       const best = potential.filter(x => x.verdict !== 'Existing store here').sort((a, b) => b.incremental_orders_month - a.incremental_orders_month || a.pin.localeCompare(b.pin)).slice(0, 8);
-      html += sec('Best places for a new store', 'Ranked by new orders won per month (not taken from our own stores). Click one to simulate it.', best.map((x, i) => `<button class="om-item${x.pin === sel ? ' on' : ''}" data-pin="${x.pin}"><span><span class="muted">${i + 1}.</span> ${x.pin} ${esc(x.name)}</span><span>+<b>${n0(x.incremental_orders_month)}</b>/mo · ${x.payback_months == null ? '—' : `${Math.round(x.payback_months)} mo payback`}</span></button>`).join(''));
+      html += sec('Best places for a new store', 'Ranked by new orders won per month (not taken from our own stores). Click one to simulate it.', best.map((x, i) => `<button class="om-item${x.pin === sel ? ' on' : ''}" data-pin="${x.pin}"><span><span class="muted">${i + 1}.</span> ${x.pin} ${esc(x.name)}</span><span>+<b>${n0(x.incremental_orders_month)}</b>/mo · ${x.payback_months == null ? 'no payback' : x.payback_months > 120 ? '10+ yr payback' : `${Math.round(x.payback_months)} mo payback`}</span></button>`).join(''));
     }
     this.side.innerHTML = html + src;
     this.side.querySelectorAll('[data-om]').forEach(b => (b.onclick = () => this.setMode(b.dataset.om)));
+    const pick = this.side.querySelector('.om-city'); if (pick) pick.onchange = () => { const mode = this.mode; this.setCity(pick.value).then(() => { this.mode = mode; this.render(); }); this.o.onCity?.(pick.value); };
     this.side.querySelectorAll('[data-store]').forEach(b => (b.onclick = () => this.selectStore(b.dataset.store)));
     this.side.querySelectorAll('[data-pin]').forEach(b => (b.onclick = () => { this.selPin = b.dataset.pin; this.selStore = null; this.render(); this.fly(b.dataset.pin); }));
     this.side.querySelectorAll('[data-sim]').forEach(b => (b.onclick = () => this.simulate(b.dataset.sim)));
@@ -267,7 +353,7 @@ export class OrdersMap {
     body += row('Orders per month the store would serve', n0(p.potential_orders_month), true)
       + `<div class="om-indent">${row(`<i class="om-line" style="border-top:3px solid ${LINE.won}"></i> New orders won back`, n0(p.incremental_orders_month))}${row(`<i class="om-line" style="border-top:3px solid ${LINE.taken}"></i> Taken from our stores`, n0(p.cannibalised_orders_month))}${p.cannibalised_from.filter(c => c.ordersPerMonth > 0).map(c => row(`&nbsp;&nbsp;from ${c.store} ${esc(this.storeName(c.store))}`, n0(c.ordersPerMonth))).join('')}</div>`
       + row('Capacity use (of 600/mo)', `${p.capacity_use_pct}%`) + row('Est. sales per month', lakh(p.est_sales_lakh_month)) + row('Est. profit per month', lakh(p.est_profit_lakh_month))
-      + row('Payback', p.payback_months == null ? 'Never at this volume' : `${p.payback_months.toFixed(1)} months`, true) + row('Annual return on investment', `${Math.round(p.annual_roi_pct)}%`) + (cand ? row('Catchment radius', km(cand.catchment_radius_km)) : '');
+      + row('Payback', p.payback_months == null ? 'Never at this volume' : p.payback_months > 120 ? 'Over 10 years' : `${p.payback_months.toFixed(1)} months`, true) + row('Annual return on investment', `${Math.round(p.annual_roi_pct)}%`) + (cand ? row('Catchment radius', km(cand.catchment_radius_km)) : '');
     let html = sec(`Impact of a store at ${p.pin} ${esc(p.name)}`, 'What changes in the first full year if a franchise opens here', body, '<button class="btn sm ghost" data-clear>Clear</button>');
     if (cand) {
       const shifts = this.d.flows.stores.map(s => ({ s, before: s.load_per_month, after: cand.store_load_after[s.id] ?? s.load_per_month })).filter(x => x.before !== x.after);

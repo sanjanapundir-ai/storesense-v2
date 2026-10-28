@@ -7,7 +7,7 @@ import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
 import { pinPoint, refinePins, cityInfo, cityForPin, stateForPin, pinPlace, fetchPlaces } from './geo.js';
 import { Map3D } from './map3d.js';
-import { OrdersMap } from './orders-map.js';
+import { OrdersMap, loadCityData, orderCities } from './orders-map.js';
 import { Flow } from './flow.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -192,7 +192,7 @@ function renderOverview() {
         <div class="card"><div class="card-h"><h2>Find more partners here</h2><span class="muted">Empty spots</span></div><div id="ov-gaps"></div></div>
         <div class="card"><div class="card-h"><h2>Insights</h2><span class="muted">From your data</span></div><ul class="insights" id="ov-insights"></ul></div>
       </div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><h2>Where we lose orders in Bengaluru</h2><span class="muted">Simulated order data · last 12 months</span></div><div id="ov-leak" class="home-leak"><p class="muted">Loading…</p></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><h2>Where we lose orders</h2><span class="muted">Every city in your file · per month</span></div><div id="ov-leak" class="home-leak"><p class="muted">Loading…</p></div></div>
       <div class="card" style="margin-top:16px"><div class="card-h"><h2>Traffic insights</h2><span class="muted">Estimated visitors a day at suggested-yes sites</span></div><div id="ov-traffic"></div></div>
       <div class="grid g-2" style="margin-top:16px">
         <div class="card"><div class="card-h"><h2>Money people can invest</h2><span class="muted">₹ lakh · by city size</span></div><div class="chart" id="ov-capital"></div><div id="ov-capital-note" class="small muted"></div></div>
@@ -890,7 +890,7 @@ function renderMap() {
     v.innerHTML = `
       <div class="toolbar"><div class="seg-ctl map-cities" id="map-cities"></div></div>
       <div class="toolbar">
-        <div class="seg-ctl" id="map-mode"><button data-m="3d">3D map</button><button data-m="orders" title="Bengaluru: today's traffic, leaks and new-store simulation">Orders heatmap</button><button data-m="google">Google Maps</button></div>
+        <div class="seg-ctl" id="map-mode"><button data-m="3d">3D map</button><button data-m="orders" title="Any city: today's traffic, leaks and new-store simulation">Orders heatmap</button><button data-m="google">Google Maps</button></div>
         <div class="tools">
           <div class="seg-ctl" id="map-layer"><button data-l="demand">Shoppers</button><button data-l="demographic">Households</button><button data-l="none">Off</button></div>
           <button class="btn sm" id="map-tilt" title="Switch between 3D and flat">Flat view</button>
@@ -925,20 +925,25 @@ function renderMap() {
   drawMap();
   setTimeout(() => map3d?.resize(), 80);
 }
-let ordersMap = null, leakData = null;
+let ordersMap = null;
 // Home card: the Bengaluru leak totals from the order data, with links into the orders heatmap
 function fillLeakCard() {
   const el = $('#ov-leak'); if (!el) return;
-  const draw = pins => {
-    const missed = pins.reduce((a, p) => a + p.missed_orders_month, 0), sales = pins.reduce((a, p) => a + p.missed_sales_lakh_month, 0), far = pins.reduce((a, p) => a + p.redirected_orders_month, 0);
-    const top = [...pins].sort((a, b) => b.missed_sales_lakh_month - a.missed_sales_lakh_month)[0];
-    const best = pins.filter(p => p.verdict === 'Viable').sort((a, b) => b.incremental_orders_month - a.incremental_orders_month)[0];
-    el.innerHTML = `<div><p style="margin:0"><b class="big">₹${sales.toFixed(1)}L</b> in sales missed every month: <b>${missed.toLocaleString('en-IN')}</b> orders from customers with no store nearby, and <b>${far.toLocaleString('en-IN')}</b> orders a month travelling more than 4 km.</p>
-      <p class="small muted" style="margin:6px 0 0">Biggest leak: <a class="lnk" data-go="map?view=orders&om=leaks&opin=${top.pin}">${top.pin} ${esc(top.name)}</a> (₹${top.missed_sales_lakh_month.toFixed(2)}L a month).${best ? ` Best place for a new store: <a class="lnk" data-go="map?view=orders&om=plan&opin=${best.pin}">${best.pin} ${esc(best.name)}</a> (+${best.incremental_orders_month} new orders a month).` : ''}</p></div>
-      <div class="tools"><button class="btn sm" data-go="map?view=orders&om=traffic">Today's traffic</button><button class="btn sm primary" data-go="map?view=orders&om=leaks">Open the leak map</button><button class="btn sm" data-go="map?view=orders&om=plan">Plan a new store</button></div>`;
-  };
-  if (leakData) return draw(leakData);
-  fetch('data/blr-potential.json').then(r => r.json()).then(j => { leakData = j.pins; draw(leakData); }).catch(() => { el.innerHTML = '<p class="muted">Order data could not load.</p>'; });
+  const res = S.result, cities = orderCities(res);
+  Promise.all(cities.map(c => loadCityData(c, res).then(d => ({ c, d })).catch(() => null))).then(list => {
+    if (S.result !== res || !$('#ov-leak')) return;
+    const rows = list.filter(x => x && x.d.potential.length).map(({ c, d }) => {
+      const p = d.potential, missed = p.reduce((a, x) => a + x.missed_orders_month, 0), sales = p.reduce((a, x) => a + x.missed_sales_lakh_month, 0), far = p.reduce((a, x) => a + x.redirected_orders_month, 0);
+      const top = [...p].sort((a, b) => b.missed_sales_lakh_month - a.missed_sales_lakh_month)[0];
+      const best = p.filter(x => x.verdict === 'Viable').sort((a, b) => b.incremental_orders_month - a.incremental_orders_month)[0];
+      return { c, d, missed, sales, far, top, best };
+    }).sort((a, b) => b.sales - a.sales);
+    if (!rows.length) { el.innerHTML = '<p class="muted">No pin codes in this file to estimate orders for.</p>'; return; }
+    const total = rows.reduce((a, r) => a + r.sales, 0), q = c => encodeURIComponent(c);
+    el.innerHTML = `<div style="flex:1 1 100%"><p style="margin:0"><b class="big">₹${total.toFixed(1)}L</b> in sales missed every month across ${rows.length} ${rows.length === 1 ? 'city' : 'cities'}: customers with no store close enough.</p></div>
+      <table class="t om-home"><tr><th>City</th><th>Missed a month</th><th>Biggest leak</th><th>Best place for a new store</th></tr>${rows.map(r => `<tr><td><a class="lnk" data-go="map?view=orders&om=leaks&city=${q(r.c)}">${esc(r.c)}</a>${r.d.simulated ? '' : ' <span class="muted small">order data</span>'}</td><td><b>₹${r.sales.toFixed(1)}L</b> <span class="muted small">${r.missed.toLocaleString('en-IN')} orders</span></td><td>${r.top ? `<a class="lnk" data-go="map?view=orders&om=leaks&city=${q(r.c)}&opin=${r.top.pin}">${r.top.pin}${r.top.name ? ' ' + esc(r.top.name) : ''}</a>` : '—'}</td><td>${r.best ? `<a class="lnk" data-go="map?view=orders&om=plan&city=${q(r.c)}&opin=${r.best.pin}">${r.best.pin}${r.best.name ? ' ' + esc(r.best.name) : ''}</a> <span class="muted small">+${r.best.incremental_orders_month}/mo</span>` : '<span class="muted">none within 30 months: our stores already cover most customers</span>'}</td></tr>`).join('')}</table>
+      <p class="small muted" style="margin:0;flex:1 1 100%">Bengaluru uses the simulated order data; other cities are estimated from city size and pin with the same model. <a class="lnk" data-go="map?view=orders&om=leaks">Open the orders heatmap</a></p>`;
+  }).catch(() => { el.innerHTML = '<p class="muted">Order estimates could not load.</p>'; });
 }
 function applyMapMode() {
   $$('#map-mode button').forEach(b => b.classList.toggle('on', b.dataset.m === mapMode));
@@ -949,9 +954,10 @@ function applyMapMode() {
   const orders = mapMode === 'orders';
   $('#orders-map').hidden = !orders; $('#orders-side').hidden = !orders; $('#map-legend-card').hidden = orders;
   $('#map-cities').style.display = orders ? 'none' : ''; if ($('#map-strip')) $('#map-strip').style.display = orders ? 'none' : '';
-  if (orders && !ordersMap) ordersMap = new OrdersMap($('#orders-map'), $('#orders-side'), { dark: currentTheme() === 'dark', getResult: () => S.result, openApp: id => openDrawer(id), overlapKm: () => S.result?.cfg?.overlapKm ?? 2 });
-  else if (orders) { ordersMap.render(); setTimeout(() => ordersMap.resize(), 60); }
-  if (orders && ordersWant) { const w = ordersWant; ordersWant = null; setTimeout(() => (w.pin ? (w.mode === 'plan' ? ordersMap.simulate(w.pin) : (ordersMap.mode = w.mode || 'leaks', ordersMap.selectPin(w.pin))) : ordersMap.setMode(w.mode || 'traffic')), ordersMap.d ? 0 : 900); }
+  const wantCity = mapCity && mapCity !== 'india' ? mapCity : null;
+  if (orders && !ordersMap) ordersMap = new OrdersMap($('#orders-map'), $('#orders-side'), { dark: currentTheme() === 'dark', getResult: () => S.result, openApp: id => openDrawer(id), overlapKm: () => S.result?.cfg?.overlapKm ?? 2, city: wantCity, onCity: c => { mapCity = c; } });
+  else if (orders) { if (wantCity && wantCity !== ordersMap.city) ordersMap.setCity(wantCity); else ordersMap.render(); setTimeout(() => ordersMap.resize(), 60); }
+  if (orders && ordersWant) { const w = ordersWant; ordersWant = null; ordersMap.loading.then(() => (w.pin ? (w.mode === 'plan' ? ordersMap.simulate(w.pin) : (ordersMap.mode = w.mode || 'leaks', ordersMap.selectPin(w.pin))) : ordersMap.setMode(w.mode || 'traffic'))); }
   ['#map-layer', '#map-tilt', '#map-spin'].forEach(sel => { $(sel).style.display = mapMode === '3d' ? '' : 'none'; });
   if (orders) return;
   if (mapTarget) setGoogle(mapTarget);

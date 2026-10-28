@@ -959,3 +959,9 @@ dd.pins a.lnk.pin:hover { background: color-mix(in srgb, var(--accent) 22%, tran
 .home-leak { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .home-leak b.big { font-size: 22px; }
 @media (max-width: 700px) { .om-legend { font-size: 10.5px; line-height: 1.5; padding: 7px 9px; max-width: 200px; } .om-ramp { width: 70px; } .om-cap { font-size: 10px; } }
+.om-cityrow { display: flex; align-items: center; gap: 10px; }
+.om-city { flex: 1; font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+table.om-home { width: 100%; flex: 1 1 100%; font-size: 14px; }
+table.om-home th { text-align: left; font-weight: 600; color: var(--text-2); }
+table.om-home td, table.om-home th { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+@media (max-width: 700px) { table.om-home th:nth-child(3), table.om-home td:nth-child(3) { display: none; } }
