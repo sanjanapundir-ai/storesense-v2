@@ -281,6 +281,86 @@ function openedYear(v) {
   return y ? +y[0] : null;
 }
 
+// ---------- incomplete files ----------
+// When no sheet looks like an applicant table, try harder before giving up: a header row with just a name or ID
+// column (a bare list of people), or no header row at all, where the columns are guessed from their values.
+const GUESS_LABEL = { id: 'Application ID', name: 'Applicant name', pin: 'Pin code', city: 'City', state: 'State', invest: 'Investment', exp: 'Retail experience (years)', business: 'Current business', space: 'Space available', floor: 'Floor', launch: 'Target launch (months)', lang: 'Preferred language', size: 'Space size (sq ft)', notes: 'Notes', phone: 'Phone', email: 'Email' };
+function guessColumns(rows) {
+  const width = Math.max(0, ...rows.slice(0, 50).map(r => (r || []).length));
+  const taken = new Set();
+  const labels = [];
+  const stats = [];
+  const share = (vals, test) => (vals.length ? vals.filter(test).length / vals.length : 0);
+  for (let c = 0; c < width; c++) {
+    const vals = rows.slice(0, 200).map(r => (r || [])[c]).filter(v => !blank(v)).map(v => String(v).trim());
+    const nums = vals.map(v => parseNum(v)).filter(n => n !== null);
+    const med = nums.length ? [...nums].sort((a, b) => a - b)[Math.floor(nums.length / 2)] : null;
+    const tests = [
+      ['email', share(vals, v => /^\S+@\S+\.\S+$/.test(v)) > 0.6],
+      ['pin', share(vals, v => /^\d{6}$/.test(v.replace(/\s/g, ''))) > 0.6],
+      ['phone', share(vals, v => /^\+?[\d\s-]{10,14}$/.test(v)) > 0.6],
+      ['id', share(vals, v => /^[A-Za-z]{1,6}[-_ ]?\d{1,6}$/.test(v)) > 0.6],
+      ['city', share(vals, v => !!cityInfo(v)) > 0.5],
+      ['state', share(vals, v => !cityInfo(v) && !!stateName(v) && /[a-z]/i.test(v)) > 0.6],
+      ['space', share(vals, v => /[a-z]/i.test(v) && !!normSpace(v)) > 0.6],
+      ['floor', share(vals, v => /ground|upper|mall|floor|first|second|\bgf\b|basement|mezzanine/i.test(v)) > 0.6],
+      ['lang', share(vals, v => /^(kannada|english|hindi|tamil|telugu|malayalam|marathi|bengali|gujarati|punjabi|odia|urdu)$/i.test(v)) > 0.6],
+      ['invest', share(vals, v => /lakh|lac|crore|\bcr\b|₹|rs\.?|inr|\d\s*l$/i.test(v)) > 0.5],
+      ['size', med !== null && med >= 150 && med <= 20000 && share(vals, v => /^[\d,.]+\s*(sq\.?\s*ft|sqft)?$/i.test(v)) > 0.7],
+      ['exp', share(vals, v => /yrs?|years?|fresher|months?/i.test(v)) > 0.5],
+      ['name', share(vals, v => /^[A-Za-z][A-Za-z.' ]{1,40}$/.test(v) && v.split(/\s+/).length <= 4 && !cityInfo(v) && !stateName(v)) > 0.6],
+    ];
+    const hit = tests.find(([k, ok]) => ok && !taken.has(k));
+    if (hit) taken.add(hit[0]);
+    labels.push(hit ? hit[0] : null);
+    stats.push({ vals, nums, med });
+  }
+  // Plain-number columns, left to right in the template's order: money (lakh), then experience, then launch months.
+  for (let c = 0; c < width; c++) {
+    const { vals, nums, med } = stats[c];
+    if (labels[c] || !vals.length || nums.length < vals.length * 0.8) continue;
+    const key = !taken.has('invest') && med >= 5 && med <= 1000 ? 'invest' : !taken.has('exp') && med <= 40 ? 'exp' : !taken.has('launch') && med <= 36 ? 'launch' : null;
+    if (key) { labels[c] = key; taken.add(key); }
+  }
+  // Longer free text: with two such columns the first is the current business and the last the notes.
+  const texty = stats.map((x, c) => (!labels[c] && x.vals.length && x.vals.reduce((n, v) => n + v.length, 0) / x.vals.length > 12 && x.nums.length < x.vals.length / 2 ? c : -1)).filter(c => c >= 0);
+  if (texty.length >= 2) { labels[texty[0]] = 'business'; labels[texty[texty.length - 1]] = 'notes'; taken.add('business'); taken.add('notes'); }
+  else if (texty.length === 1) { labels[texty[0]] = 'notes'; taken.add('notes'); }
+  return { labels: labels.map((k, c) => (k ? GUESS_LABEL[k] : `Column ${c + 1}`)), found: [...taken] };
+}
+
+function rescueApplications(sheets, out, today) {
+  for (const [name, rows] of Object.entries(sheets)) {
+    if (!rows?.length || isHelpSheet(name)) continue;
+    const entry = out.report.sheets.find(e => e.name === name);
+    if (entry && entry.type !== 'skipped') continue;
+    // 1. A header row that names people (or IDs) but has no city or pin column
+    for (let r = 0; r < Math.min(rows.length, 15); r++) {
+      const { map, labels } = mapHeader(rows[r], APP_COLS);
+      if (map.name === undefined && map.id === undefined) continue;
+      const before = out.applications.length;
+      readApplications(rows, { header: r, map, labels }, out, today);
+      if (out.applications.length > before) {
+        out.report.assumptions.push(`"${name}" has no city or pin code column; read its ${out.applications.length - before} rows as applicants, who stay on hold until their location is known.`);
+        if (entry) Object.assign(entry, { type: 'applications', header: r + 1, read: out.applications.length - before });
+        return;
+      }
+    }
+    // 2. No header row: guess each column from its values
+    const { labels, found } = guessColumns(rows);
+    if (!found.includes('name') && !found.includes('id') && !found.includes('pin')) continue;
+    const withHeader = [labels, ...rows];
+    const { map, labels: lab } = mapHeader(labels, APP_COLS);
+    const before = out.applications.length;
+    readApplications(withHeader, { header: 0, map, labels: lab }, out, today);
+    if (out.applications.length > before) {
+      out.report.assumptions.push(`"${name}" has no header row, so its columns were guessed from the values: ${found.map(k => GUESS_LABEL[k]).join(', ')}.${labels.some(l => l.startsWith('Column ')) ? ' Columns that could not be recognised were kept as extra details.' : ''}`);
+      if (entry) Object.assign(entry, { type: 'applications', header: 0, read: out.applications.length - before, columns: Object.fromEntries(found.map(k => [k, GUESS_LABEL[k]])) });
+      return;
+    }
+  }
+}
+
 export function parseWorkbook(sheets, opts = {}) {
   const out = { applications: [], territories: [], stores: [], storesFromFile: false, notes: [], report: { sheets: [], assumptions: [] } };
   const today = opts.today ? new Date(opts.today) : new Date();
@@ -299,6 +379,7 @@ export function parseWorkbook(sheets, opts = {}) {
     ({ applications: readApplications, territories: readTerritories, stores: readStores })[fit.type](rows, fit, out, today);
     entry.read = { applications: out.applications.length, territories: out.territories.length, stores: out.stores.length }[fit.type] - before;
   }
+  if (!out.applications.length) rescueApplications(sheets, out, today);
   if (!out.stores.length) {
     out.stores = DEFAULT_STORES.map(s => ({ ...s }));
     out.notes.push('No existing-stores sheet in the upload, so the brand\'s 10 open stores from the template were used.');

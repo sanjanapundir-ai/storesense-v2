@@ -181,6 +181,7 @@ async function tablesOf(file, XLSX) {
   if (IMAGE.test(name)) throw new Error(`"${name}" is an image. Pictures of tables can't be read reliably; please upload ${ACCEPTED_FORMATS}.`);
   if (NO_TABLE.test(name)) throw new Error(`"${name}" is a .${ext(name)} file, which doesn't hold a table. Please upload ${ACCEPTED_FORMATS}.`);
   if (isPdf(data) || /\.pdf$/i.test(name)) return { tables: await pdfSheets(data, name), note: `"${name}" was read from the PDF's text; check a few applicants against the PDF.` };
+  if ((/\.docx$/i.test(name) || (isZip(data) && /\.(docm|dotx)$/i.test(name))) && !XLSX) throw new Error(`The Word reader didn't load (check the internet connection and reload).`);
   if (/\.docx$/i.test(name) || (isZip(data) && /\.(docm|dotx)$/i.test(name))) return { tables: docxSheets(data, name, XLSX), note: `"${name}" was read from the Word document's tables.` };
   if (/\.doc$/i.test(name)) throw new Error(`"${name}" is an old Word .doc file. Save it as .docx or PDF and upload again.`);
 
@@ -195,6 +196,7 @@ async function tablesOf(file, XLSX) {
   if (textual && (DELIMITED.test(name) || /\.(md|markdown)$/i.test(name) || !SPREADSHEET.test(name)) && !/^\s*</.test(body)) {
     return { tables: [{ name: baseName(name), rows: markdownRows(body) || delimitedRows(body) }] };
   }
+  if (!XLSX) throw new Error(`The spreadsheet reader didn't load (check the internet connection and reload). CSV, TXT, JSON and Markdown files still work.`);
   let wb;
   try { wb = XLSX.read(data, { type: 'array' }); }
   catch { throw new Error(`"${name}" could not be read. Please upload ${ACCEPTED_FORMATS}.`); }

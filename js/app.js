@@ -84,7 +84,7 @@ $('#file').addEventListener('change', async e => {
   if (!picked.length) return;
   try {
     const files = await Promise.all(picked.map(async f => ({ name: f.name, data: await f.arrayBuffer() })));
-    const { sheets, notes, label } = await filesToSheets(files, XLSX);
+    const { sheets, notes, label } = await filesToSheets(files, globalThis.XLSX);
     load(sheets, label, false, notes);
   } catch (err) {
     toast(err?.message || `Could not read the file. Please upload ${ACCEPTED_FORMATS}.`);

@@ -50,8 +50,9 @@ export class Map3D {
   constructor(el, { dark, onApp, onPin, onCity, onTarget, color }) {
     this.el = el; this.cb = { onApp, onPin, onCity, onTarget }; this.color = color; this.dark = dark;
     this.ready = false; this.queue = null; this.spin = false;
+    if (!globalThis.maplibregl) { el.innerHTML = '<div class="empty" style="height:100%;display:grid;place-items:center">The map could not load. Check the internet connection and reload.</div>'; return; }
     this.popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'ss-pop' });
-    fetch(STYLE_URL).then(r => r.json()).then(style => {
+    fetch(STYLE_URL, { signal: AbortSignal.timeout(15000) }).then(r => r.json()).then(style => {
       this.map = new maplibregl.Map({ container: el, style: themeStyle(style, dark), bounds: INDIA, pitch: 0, attributionControl: { compact: true }, maxPitch: 75 });
       this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
       this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');

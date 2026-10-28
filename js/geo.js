@@ -261,9 +261,11 @@ export async function refinePins(pins, onProgress) {
   let done = 0;
   for (const p of todo) {
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${p}&country=India&format=json&limit=1`);
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${p}&country=India&format=json&limit=1`, { signal: AbortSignal.timeout(8000) });
       const j = await r.json();
-      if (j[0]) liveCache[p] = [+j[0].lat, +j[0].lon];
+      const lat = +j?.[0]?.lat, lon = +j?.[0]?.lon;
+      // An incomplete answer keeps the estimate instead of putting the pin at NaN.
+      if (Number.isFinite(lat) && Number.isFinite(lon)) liveCache[p] = [lat, lon];
     } catch { /* keep the estimate */ }
     done++;
     onProgress?.(done, todo.length);
@@ -287,7 +289,7 @@ export async function fetchPlaces(pins, onDone) {
     while (i < todo.length) {
       const p = todo[i++];
       try {
-        const r = await fetch(`https://api.postalpincode.in/pincode/${p}`);
+        const r = await fetch(`https://api.postalpincode.in/pincode/${p}`, { signal: AbortSignal.timeout(8000) });
         const j = (await r.json())?.[0];
         const offices = j?.Status === 'Success' ? j.PostOffice || [] : [];
         if (offices.length) {
