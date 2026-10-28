@@ -7,6 +7,7 @@ import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
 import { pinPoint, refinePins, cityInfo, cityForPin, stateForPin, pinPlace, fetchPlaces } from './geo.js';
 import { Map3D } from './map3d.js';
+import { OrdersMap } from './orders-map.js';
 import { Flow } from './flow.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -191,6 +192,7 @@ function renderOverview() {
         <div class="card"><div class="card-h"><h2>Find more partners here</h2><span class="muted">Empty spots</span></div><div id="ov-gaps"></div></div>
         <div class="card"><div class="card-h"><h2>Insights</h2><span class="muted">From your data</span></div><ul class="insights" id="ov-insights"></ul></div>
       </div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><h2>Where we lose orders in Bengaluru</h2><span class="muted">Simulated order data · last 12 months</span></div><div id="ov-leak" class="home-leak"><p class="muted">Loading…</p></div></div>
       <div class="card" style="margin-top:16px"><div class="card-h"><h2>Traffic insights</h2><span class="muted">Estimated visitors a day at suggested-yes sites</span></div><div id="ov-traffic"></div></div>
       <div class="grid g-2" style="margin-top:16px">
         <div class="card"><div class="card-h"><h2>Money people can invest</h2><span class="muted">₹ lakh · by city size</span></div><div class="chart" id="ov-capital"></div><div id="ov-capital-note" class="small muted"></div></div>
@@ -287,6 +289,7 @@ function updateRules() {
     : '<span>These are the default rules. Move any slider to see who would change.</span>';
   $$('#presets button').forEach(b => b.classList.toggle('on', Object.entries(PRESETS[b.dataset.p]).every(([k, v]) => k === 'label' || JSON.stringify(S.settings[k]) === JSON.stringify(v))));
   // Insights
+  fillLeakCard();
   $('#ov-insights').innerHTML = insights(res).map(i => `<li><a class="lnk" data-go="${i.go}">${esc(i.text)}</a></li>`).join('');
   $('#ov-traffic').innerHTML = trafficCard(res);
 }
@@ -870,7 +873,7 @@ function hover(anchor, html) {
 function flashTer(id) { const el = $(`#ter-${id}`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.animate([{ boxShadow: '0 0 0 3px var(--accent)' }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1600 }); } }
 
 // ---------------- map ----------------
-let map3d = null, mapCity = null, mapLayer = 'demand', mapMode = '3d', mapTarget = null;
+let map3d = null, mapCity = null, mapLayer = 'demand', mapMode = '3d', mapTarget = null, ordersWant = null;
 function mapCityList(res) {
   const n = new Map();
   const add = (c, k) => { if (!c || c === '—') return; const e = n.get(c) || { apps: 0, ters: 0, stores: 0 }; e[k]++; n.set(c, e); };
@@ -887,7 +890,7 @@ function renderMap() {
     v.innerHTML = `
       <div class="toolbar"><div class="seg-ctl map-cities" id="map-cities"></div></div>
       <div class="toolbar">
-        <div class="seg-ctl" id="map-mode"><button data-m="3d">3D map</button><button data-m="google">Google Maps</button></div>
+        <div class="seg-ctl" id="map-mode"><button data-m="3d">3D map</button><button data-m="orders" title="Bengaluru: today's traffic, leaks and new-store simulation">Orders heatmap</button><button data-m="google">Google Maps</button></div>
         <div class="tools">
           <div class="seg-ctl" id="map-layer"><button data-l="demand">Shoppers</button><button data-l="demographic">Households</button><button data-l="none">Off</button></div>
           <button class="btn sm" id="map-tilt" title="Switch between 3D and flat">Flat view</button>
@@ -896,13 +899,14 @@ function renderMap() {
       </div>
       <div id="map-strip"></div>
       <div class="map-wrap">
-        <div class="map-stage"><div id="map3d"></div><iframe id="gmap-big" title="Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" hidden></iframe></div>
+        <div class="map-stage"><div id="map3d"></div><div id="orders-map" hidden></div><iframe id="gmap-big" title="Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" hidden></iframe></div>
         <div class="map-side">
+          <div id="orders-side" hidden></div>
           <div class="card gm-card"><div class="card-h"><h2>Google Maps</h2><span class="muted" id="gm-label"></span></div>
             <iframe id="gmap" title="Google Maps for the selected place" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             <div class="gm-actions"><a class="btn sm" id="gm-open" target="_blank" rel="noopener">Open in Google Maps ↗</a></div>
             <p class="small muted" style="margin:8px 0 0">Click any dot, store or pin to see that exact place on Google Maps.</p></div>
-          <div class="card"><h2 style="margin-bottom:12px">What you see</h2><div class="map-legend" id="map-legend"></div></div>
+          <div class="card" id="map-legend-card"><h2 style="margin-bottom:12px">What you see</h2><div class="map-legend" id="map-legend"></div></div>
         </div>
       </div>`;
     map3d = new Map3D($('#map3d'), {
@@ -921,12 +925,35 @@ function renderMap() {
   drawMap();
   setTimeout(() => map3d?.resize(), 80);
 }
+let ordersMap = null, leakData = null;
+// Home card: the Bengaluru leak totals from the order data, with links into the orders heatmap
+function fillLeakCard() {
+  const el = $('#ov-leak'); if (!el) return;
+  const draw = pins => {
+    const missed = pins.reduce((a, p) => a + p.missed_orders_month, 0), sales = pins.reduce((a, p) => a + p.missed_sales_lakh_month, 0), far = pins.reduce((a, p) => a + p.redirected_orders_month, 0);
+    const top = [...pins].sort((a, b) => b.missed_sales_lakh_month - a.missed_sales_lakh_month)[0];
+    const best = pins.filter(p => p.verdict === 'Viable').sort((a, b) => b.incremental_orders_month - a.incremental_orders_month)[0];
+    el.innerHTML = `<div><p style="margin:0"><b class="big">₹${sales.toFixed(1)}L</b> in sales missed every month: <b>${missed.toLocaleString('en-IN')}</b> orders from customers with no store nearby, and <b>${far.toLocaleString('en-IN')}</b> orders a month travelling more than 4 km.</p>
+      <p class="small muted" style="margin:6px 0 0">Biggest leak: <a class="lnk" data-go="map?view=orders&om=leaks&opin=${top.pin}">${top.pin} ${esc(top.name)}</a> (₹${top.missed_sales_lakh_month.toFixed(2)}L a month).${best ? ` Best place for a new store: <a class="lnk" data-go="map?view=orders&om=plan&opin=${best.pin}">${best.pin} ${esc(best.name)}</a> (+${best.incremental_orders_month} new orders a month).` : ''}</p></div>
+      <div class="tools"><button class="btn sm" data-go="map?view=orders&om=traffic">Today's traffic</button><button class="btn sm primary" data-go="map?view=orders&om=leaks">Open the leak map</button><button class="btn sm" data-go="map?view=orders&om=plan">Plan a new store</button></div>`;
+  };
+  if (leakData) return draw(leakData);
+  fetch('data/blr-potential.json').then(r => r.json()).then(j => { leakData = j.pins; draw(leakData); }).catch(() => { el.innerHTML = '<p class="muted">Order data could not load.</p>'; });
+}
 function applyMapMode() {
   $$('#map-mode button').forEach(b => b.classList.toggle('on', b.dataset.m === mapMode));
   $('#map3d').style.visibility = mapMode === '3d' ? 'visible' : 'hidden';
   $('#gmap-big').hidden = mapMode !== 'google';
-  $('.gm-card').hidden = mapMode === 'google';
+  $('.gm-card').hidden = mapMode === 'google' || mapMode === 'orders';
+  // Orders heatmap: Bengaluru order data from the Expansion Console (js/orders-map.js)
+  const orders = mapMode === 'orders';
+  $('#orders-map').hidden = !orders; $('#orders-side').hidden = !orders; $('#map-legend-card').hidden = orders;
+  $('#map-cities').style.display = orders ? 'none' : ''; if ($('#map-strip')) $('#map-strip').style.display = orders ? 'none' : '';
+  if (orders && !ordersMap) ordersMap = new OrdersMap($('#orders-map'), $('#orders-side'), { dark: currentTheme() === 'dark', getResult: () => S.result, openApp: id => openDrawer(id), overlapKm: () => S.result?.cfg?.overlapKm ?? 2 });
+  else if (orders) { ordersMap.render(); setTimeout(() => ordersMap.resize(), 60); }
+  if (orders && ordersWant) { const w = ordersWant; ordersWant = null; setTimeout(() => (w.pin ? (w.mode === 'plan' ? ordersMap.simulate(w.pin) : (ordersMap.mode = w.mode || 'leaks', ordersMap.selectPin(w.pin))) : ordersMap.setMode(w.mode || 'traffic')), ordersMap.d ? 0 : 900); }
   ['#map-layer', '#map-tilt', '#map-spin'].forEach(sel => { $(sel).style.display = mapMode === '3d' ? '' : 'none'; });
+  if (orders) return;
   if (mapTarget) setGoogle(mapTarget);
 }
 function setGoogle(t) {
@@ -1483,6 +1510,8 @@ function route() {
     if (params.store) pin = String(S.result.stores.find(x => x.id === params.store)?.pin || '');
     if (params.city) mapCity = params.city;
     if (!params.city && !params.pin && !params.store && !mapCity) mapCity = 'india';
+    // #/map?view=orders&om=leaks&opin=560098 opens the Bengaluru orders heatmap on a view and pin
+    if (params.view === 'orders') { mapMode = 'orders'; ordersWant = { mode: params.om, pin: params.opin }; } else if (params.view === '3d' || params.view === 'google') mapMode = params.view;
     if (pin) {
       S.mapFocus = pin;
       mapCity = S.result.apps.find(a => a.pin === pin)?.cityName || S.result.territories.find(t => t.pins.includes(pin))?.city || S.result.stores.find(x => String(x.pin) === pin)?.city || mapCity;

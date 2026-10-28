@@ -2,11 +2,11 @@
 // Stores rise as glowing towers, applicants as coloured columns sized by score,
 // catchment rings and a demand heat layer sit underneath. No API key needed.
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+export const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 const INDIA = [[67.5, 6.0], [97.8, 36.5]];
 
 // Re-colour the free street style to match the app's navy theme
-function themeStyle(style, dark) {
+export function themeStyle(style, dark) {
   if (!dark) return style;
   const P = { bg: '#050b1f', land: '#081230', land2: '#0a1636', water: '#0b2552', building: '#14244f', b3d: '#1c3170', road: '#1b2b58', major: '#2b4588', rail: '#1d2a55', boundary: '#4a62a8', label: '#a9bbe6', halo: '#050b1f' };
   for (const l of style.layers) {

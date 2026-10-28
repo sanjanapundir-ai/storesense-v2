@@ -1,0 +1,5662 @@
+{
+ "meta": {
+  "as_of": "2026-10-25",
+  "window": "2025-10-25 to 2026-10-25 (last 12 months)",
+  "sample_scale": 4.59,
+  "store_aov_inr": 2555,
+  "capacity_orders_per_month": 600,
+  "investment_lakh": 35,
+  "fixed_cost_lakh_month": 1.9,
+  "contribution_margin": 0.35,
+  "payback_target_months": 30,
+  "near_store_km": 0.8,
+  "far_travel_km": 4,
+  "notes": [
+   "Simulated order data. The 10,000 customers are a sample, scaled so today's five Bengaluru stores average the Tier 1 sales assumption (₹9.5L a month).",
+   "Missed orders: store purchases a pin's customers would make if a store were in their own pin, minus what they make today (they buy online instead or not at all).",
+   "Redirected orders: store purchases made by travelling more than 4 km to a far store.",
+   "New-store potential: customers for whom the new store would be the closest; their store purchases rise as travel distance falls. Purchases they made at an existing store count as taken from that store (cannibalisation).",
+   "Capacity: one standard store (400-600 sq ft, one eye-test room) handles about 20 orders a day (600 a month)."
+  ]
+ },
+ "pins": [
+  {
+   "pin": "560001",
+   "name": "Bengaluru",
+   "zone": "core",
+   "lat": 12.9814,
+   "lng": 77.59439,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 0,
+   "missed_orders_month": 4,
+   "missed_sales_lakh_month": 0.11,
+   "redirected_orders_month": 6,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 20,
+   "store_orders_month": 35,
+   "catchment_customers": 7356,
+   "potential_orders_month": 272,
+   "incremental_orders_month": 0,
+   "cannibalised_orders_month": 272,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 272,
+     "salesLakhPerMonth": 6.96
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 45,
+   "est_sales_lakh_month": 6.96,
+   "est_profit_lakh_month": 0.54,
+   "payback_months": 65.2,
+   "annual_roi_pct": 18.4,
+   "verdict": "Existing store here",
+   "opportunity_index": 0
+  },
+  {
+   "pin": "560002",
+   "name": "Bengaluru City",
+   "zone": "core",
+   "lat": 12.96323,
+   "lng": 77.57942,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.59,
+   "missed_orders_month": 8,
+   "missed_sales_lakh_month": 0.2,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 16,
+   "store_orders_month": 18,
+   "catchment_customers": 8989,
+   "potential_orders_month": 416,
+   "incremental_orders_month": 115,
+   "cannibalised_orders_month": 301,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 246,
+     "salesLakhPerMonth": 6.3
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 35,
+     "salesLakhPerMonth": 0.9
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.5
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 69,
+   "est_sales_lakh_month": 10.63,
+   "est_profit_lakh_month": 1.82,
+   "payback_months": 19.2,
+   "annual_roi_pct": 62.4,
+   "verdict": "Viable",
+   "opportunity_index": 50
+  },
+  {
+   "pin": "560003",
+   "name": "Malleswaram",
+   "zone": "core",
+   "lat": 13.00043,
+   "lng": 77.57296,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 3.14,
+   "missed_orders_month": 18,
+   "missed_sales_lakh_month": 0.45,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 34,
+   "store_orders_month": 24,
+   "catchment_customers": 11508,
+   "potential_orders_month": 461,
+   "incremental_orders_month": 153,
+   "cannibalised_orders_month": 308,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 300,
+     "salesLakhPerMonth": 7.66
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 7,
+     "salesLakhPerMonth": 0.18
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.03
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 77,
+   "est_sales_lakh_month": 11.77,
+   "est_profit_lakh_month": 2.22,
+   "payback_months": 15.8,
+   "annual_roi_pct": 76.1,
+   "verdict": "Viable",
+   "opportunity_index": 66
+  },
+  {
+   "pin": "560004",
+   "name": "Basavanagudi",
+   "zone": "core",
+   "lat": 12.94589,
+   "lng": 77.57342,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 4.56,
+   "missed_orders_month": 35,
+   "missed_sales_lakh_month": 0.9,
+   "redirected_orders_month": 20,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 15
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 60,
+   "store_orders_month": 27,
+   "catchment_customers": 8874,
+   "potential_orders_month": 436,
+   "incremental_orders_month": 163,
+   "cannibalised_orders_month": 274,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 174,
+     "salesLakhPerMonth": 4.45
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 72,
+     "salesLakhPerMonth": 1.83
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 28,
+     "salesLakhPerMonth": 0.71
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 73,
+   "est_sales_lakh_month": 11.15,
+   "est_profit_lakh_month": 2,
+   "payback_months": 17.5,
+   "annual_roi_pct": 68.6,
+   "verdict": "Viable",
+   "opportunity_index": 71
+  },
+  {
+   "pin": "560005",
+   "name": "Fraser Town",
+   "zone": "core",
+   "lat": 12.99922,
+   "lng": 77.61789,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 3.16,
+   "missed_orders_month": 9,
+   "missed_sales_lakh_month": 0.22,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 16,
+   "store_orders_month": 21,
+   "catchment_customers": 5176,
+   "potential_orders_month": 218,
+   "incremental_orders_month": 48,
+   "cannibalised_orders_month": 170,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 97,
+     "salesLakhPerMonth": 2.48
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 73,
+     "salesLakhPerMonth": 1.87
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 36,
+   "est_sales_lakh_month": 5.58,
+   "est_profit_lakh_month": 0.05,
+   "payback_months": 666.7,
+   "annual_roi_pct": 1.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 21
+  },
+  {
+   "pin": "560006",
+   "name": "J C Nagar",
+   "zone": "core",
+   "lat": 13.00689,
+   "lng": 77.59591,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.84,
+   "missed_orders_month": 12,
+   "missed_sales_lakh_month": 0.3,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 27,
+   "store_orders_month": 20,
+   "catchment_customers": 8177,
+   "potential_orders_month": 330,
+   "incremental_orders_month": 100,
+   "cannibalised_orders_month": 230,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 199,
+     "salesLakhPerMonth": 5.1
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 30,
+     "salesLakhPerMonth": 0.78
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 55,
+   "est_sales_lakh_month": 8.44,
+   "est_profit_lakh_month": 1.05,
+   "payback_months": 33.2,
+   "annual_roi_pct": 36.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 43
+  },
+  {
+   "pin": "560007",
+   "name": "Agram",
+   "zone": "inner",
+   "lat": 12.94656,
+   "lng": 77.63676,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 2.42,
+   "missed_orders_month": 14,
+   "missed_sales_lakh_month": 0.35,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 26,
+   "store_orders_month": 31,
+   "catchment_customers": 2680,
+   "potential_orders_month": 195,
+   "incremental_orders_month": 38,
+   "cannibalised_orders_month": 156,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 97,
+     "salesLakhPerMonth": 2.47
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 51,
+     "salesLakhPerMonth": 1.31
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.15
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.07
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 32,
+   "est_sales_lakh_month": 4.97,
+   "est_profit_lakh_month": -0.16,
+   "payback_months": null,
+   "annual_roi_pct": -5.5,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560008",
+   "name": "H A L II Stage",
+   "zone": "core",
+   "lat": 12.97058,
+   "lng": 77.63534,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 2.28,
+   "missed_orders_month": 20,
+   "missed_sales_lakh_month": 0.5,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 54,
+   "store_orders_month": 37,
+   "catchment_customers": 2299,
+   "potential_orders_month": 185,
+   "incremental_orders_month": 35,
+   "cannibalised_orders_month": 150,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 101,
+     "salesLakhPerMonth": 2.58
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 35,
+     "salesLakhPerMonth": 0.88
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 14,
+     "salesLakhPerMonth": 0.35
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 31,
+   "est_sales_lakh_month": 4.72,
+   "est_profit_lakh_month": -0.25,
+   "payback_months": null,
+   "annual_roi_pct": -8.5,
+   "verdict": "Below payback target",
+   "opportunity_index": 15
+  },
+  {
+   "pin": "560009",
+   "name": "K. G. Road",
+   "zone": "core",
+   "lat": 12.97776,
+   "lng": 77.57705,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 1.92,
+   "missed_orders_month": 2,
+   "missed_sales_lakh_month": 0.06,
+   "redirected_orders_month": 1,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 8,
+   "store_orders_month": 8,
+   "catchment_customers": 11476,
+   "potential_orders_month": 452,
+   "incremental_orders_month": 104,
+   "cannibalised_orders_month": 348,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 330,
+     "salesLakhPerMonth": 8.43
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 15,
+     "salesLakhPerMonth": 0.39
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.07
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 75,
+   "est_sales_lakh_month": 11.55,
+   "est_profit_lakh_month": 2.14,
+   "payback_months": 16.3,
+   "annual_roi_pct": 73.4,
+   "verdict": "Viable",
+   "opportunity_index": 45
+  },
+  {
+   "pin": "560010",
+   "name": "Rajajinagar",
+   "zone": "core",
+   "lat": 12.99137,
+   "lng": 77.55237,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 4.69,
+   "missed_orders_month": 32,
+   "missed_sales_lakh_month": 0.83,
+   "redirected_orders_month": 20,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 18
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 57,
+   "store_orders_month": 21,
+   "catchment_customers": 11013,
+   "potential_orders_month": 472,
+   "incremental_orders_month": 199,
+   "cannibalised_orders_month": 272,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 260,
+     "salesLakhPerMonth": 6.65
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 12,
+     "salesLakhPerMonth": 0.31
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 79,
+   "est_sales_lakh_month": 12.05,
+   "est_profit_lakh_month": 2.32,
+   "payback_months": 15.1,
+   "annual_roi_pct": 79.5,
+   "verdict": "Viable",
+   "opportunity_index": 86
+  },
+  {
+   "pin": "560011",
+   "name": "Jayangar III Block",
+   "zone": "core",
+   "lat": 12.93626,
+   "lng": 77.58789,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 4.63,
+   "missed_orders_month": 29,
+   "missed_sales_lakh_month": 0.75,
+   "redirected_orders_month": 23,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 15
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 49,
+   "store_orders_month": 25,
+   "catchment_customers": 7415,
+   "potential_orders_month": 376,
+   "incremental_orders_month": 126,
+   "cannibalised_orders_month": 250,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 112,
+     "salesLakhPerMonth": 2.87
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 90,
+     "salesLakhPerMonth": 2.29
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 49,
+     "salesLakhPerMonth": 1.24
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 63,
+   "est_sales_lakh_month": 9.61,
+   "est_profit_lakh_month": 1.47,
+   "payback_months": 23.9,
+   "annual_roi_pct": 50.2,
+   "verdict": "Viable",
+   "opportunity_index": 55
+  },
+  {
+   "pin": "560012",
+   "name": "Science Institute",
+   "zone": "inner",
+   "lat": 13.01918,
+   "lng": 77.56656,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 5.17,
+   "missed_orders_month": 4,
+   "missed_sales_lakh_month": 0.1,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 5,
+   "store_orders_month": 3,
+   "catchment_customers": 9856,
+   "potential_orders_month": 421,
+   "incremental_orders_month": 183,
+   "cannibalised_orders_month": 238,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 227,
+     "salesLakhPerMonth": 5.8
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.28
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 70,
+   "est_sales_lakh_month": 10.76,
+   "est_profit_lakh_month": 1.87,
+   "payback_months": 18.8,
+   "annual_roi_pct": 64,
+   "verdict": "Viable",
+   "opportunity_index": 79
+  },
+  {
+   "pin": "560013",
+   "name": "Jalahalli",
+   "zone": "inner",
+   "lat": 13.05554,
+   "lng": 77.5466,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 9.73,
+   "missed_orders_month": 36,
+   "missed_sales_lakh_month": 0.92,
+   "redirected_orders_month": 6,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 53,
+   "store_orders_month": 6,
+   "catchment_customers": 6589,
+   "potential_orders_month": 287,
+   "incremental_orders_month": 173,
+   "cannibalised_orders_month": 114,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 108,
+     "salesLakhPerMonth": 2.76
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.16
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 48,
+   "est_sales_lakh_month": 7.34,
+   "est_profit_lakh_month": 0.67,
+   "payback_months": 52.4,
+   "annual_roi_pct": 22.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 75
+  },
+  {
+   "pin": "560015",
+   "name": "Jalahalli West",
+   "zone": "inner",
+   "lat": 13.05767,
+   "lng": 77.52592,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 11.27,
+   "missed_orders_month": 29,
+   "missed_sales_lakh_month": 0.75,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 43,
+   "store_orders_month": 3,
+   "catchment_customers": 5828,
+   "potential_orders_month": 246,
+   "incremental_orders_month": 159,
+   "cannibalised_orders_month": 87,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 85,
+     "salesLakhPerMonth": 2.18
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.05
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 41,
+   "est_sales_lakh_month": 6.29,
+   "est_profit_lakh_month": 0.3,
+   "payback_months": 115.5,
+   "annual_roi_pct": 10.4,
+   "verdict": "Below payback target",
+   "opportunity_index": 69
+  },
+  {
+   "pin": "560016",
+   "name": "Doorvaninagar",
+   "zone": "inner",
+   "lat": 13.01102,
+   "lng": 77.67608,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 4.17,
+   "missed_orders_month": 47,
+   "missed_sales_lakh_month": 1.2,
+   "redirected_orders_month": 24,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 17
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 85,
+   "store_orders_month": 41,
+   "catchment_customers": 3680,
+   "potential_orders_month": 224,
+   "incremental_orders_month": 81,
+   "cannibalised_orders_month": 143,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 129,
+     "salesLakhPerMonth": 3.3
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 13,
+     "salesLakhPerMonth": 0.33
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 37,
+   "est_sales_lakh_month": 5.71,
+   "est_profit_lakh_month": 0.1,
+   "payback_months": 350.6,
+   "annual_roi_pct": 3.4,
+   "verdict": "Below payback target",
+   "opportunity_index": 35
+  },
+  {
+   "pin": "560017",
+   "name": "Vimanapura",
+   "zone": "inner",
+   "lat": 12.9584,
+   "lng": 77.66423,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 3.97,
+   "missed_orders_month": 37,
+   "missed_sales_lakh_month": 0.94,
+   "redirected_orders_month": 19,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 15
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 4
+    }
+   ],
+   "online_orders_month": 64,
+   "store_orders_month": 37,
+   "catchment_customers": 3483,
+   "potential_orders_month": 254,
+   "incremental_orders_month": 85,
+   "cannibalised_orders_month": 169,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 83,
+     "salesLakhPerMonth": 2.13
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 66,
+     "salesLakhPerMonth": 1.68
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 20,
+     "salesLakhPerMonth": 0.51
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 42,
+   "est_sales_lakh_month": 6.48,
+   "est_profit_lakh_month": 0.37,
+   "payback_months": 95,
+   "annual_roi_pct": 12.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 37
+  },
+  {
+   "pin": "560018",
+   "name": "Chamrajpet",
+   "zone": "core",
+   "lat": 12.9592,
+   "lng": 77.56258,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 4.24,
+   "missed_orders_month": 12,
+   "missed_sales_lakh_month": 0.32,
+   "redirected_orders_month": 8,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 6
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 21,
+   "store_orders_month": 12,
+   "catchment_customers": 9838,
+   "potential_orders_month": 466,
+   "incremental_orders_month": 182,
+   "cannibalised_orders_month": 284,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 223,
+     "salesLakhPerMonth": 5.69
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 48,
+     "salesLakhPerMonth": 1.24
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 13,
+     "salesLakhPerMonth": 0.32
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 78,
+   "est_sales_lakh_month": 11.9,
+   "est_profit_lakh_month": 2.27,
+   "payback_months": 15.4,
+   "annual_roi_pct": 77.7,
+   "verdict": "Viable",
+   "opportunity_index": 79
+  },
+  {
+   "pin": "560020",
+   "name": "Seshadripuram",
+   "zone": "core",
+   "lat": 12.99135,
+   "lng": 77.57738,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.15,
+   "missed_orders_month": 4,
+   "missed_sales_lakh_month": 0.1,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 9,
+   "store_orders_month": 11,
+   "catchment_customers": 12366,
+   "potential_orders_month": 463,
+   "incremental_orders_month": 115,
+   "cannibalised_orders_month": 348,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 343,
+     "salesLakhPerMonth": 8.75
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.08
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.06
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 77,
+   "est_sales_lakh_month": 11.84,
+   "est_profit_lakh_month": 2.24,
+   "payback_months": 15.6,
+   "annual_roi_pct": 77,
+   "verdict": "Viable",
+   "opportunity_index": 50
+  },
+  {
+   "pin": "560021",
+   "name": "Srirampuram",
+   "zone": "core",
+   "lat": 12.99277,
+   "lng": 77.56287,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 3.64,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.28,
+   "redirected_orders_month": 4,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 20,
+   "store_orders_month": 13,
+   "catchment_customers": 11871,
+   "potential_orders_month": 483,
+   "incremental_orders_month": 173,
+   "cannibalised_orders_month": 310,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 301,
+     "salesLakhPerMonth": 7.7
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 8,
+     "salesLakhPerMonth": 0.2
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 80,
+   "est_sales_lakh_month": 12.34,
+   "est_profit_lakh_month": 2.42,
+   "payback_months": 14.5,
+   "annual_roi_pct": 82.9,
+   "verdict": "Viable",
+   "opportunity_index": 75
+  },
+  {
+   "pin": "560022",
+   "name": "Yeswanthpura",
+   "zone": "inner",
+   "lat": 13.02767,
+   "lng": 77.54424,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 7.48,
+   "missed_orders_month": 24,
+   "missed_sales_lakh_month": 0.62,
+   "redirected_orders_month": 9,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 8
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 36,
+   "store_orders_month": 9,
+   "catchment_customers": 8718,
+   "potential_orders_month": 363,
+   "incremental_orders_month": 186,
+   "cannibalised_orders_month": 177,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 173,
+     "salesLakhPerMonth": 4.43
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 4,
+     "salesLakhPerMonth": 0.1
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 61,
+   "est_sales_lakh_month": 9.28,
+   "est_profit_lakh_month": 1.35,
+   "payback_months": 25.9,
+   "annual_roi_pct": 46.3,
+   "verdict": "Viable",
+   "opportunity_index": 81
+  },
+  {
+   "pin": "560023",
+   "name": "Magadi Road",
+   "zone": "core",
+   "lat": 12.97369,
+   "lng": 77.55937,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 3.89,
+   "missed_orders_month": 10,
+   "missed_sales_lakh_month": 0.26,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 21,
+   "store_orders_month": 8,
+   "catchment_customers": 11072,
+   "potential_orders_month": 483,
+   "incremental_orders_month": 182,
+   "cannibalised_orders_month": 301,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 271,
+     "salesLakhPerMonth": 6.93
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 29,
+     "salesLakhPerMonth": 0.74
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 81,
+   "est_sales_lakh_month": 12.34,
+   "est_profit_lakh_month": 2.42,
+   "payback_months": 14.5,
+   "annual_roi_pct": 83,
+   "verdict": "Viable",
+   "opportunity_index": 79
+  },
+  {
+   "pin": "560024",
+   "name": "H A Farm",
+   "zone": "inner",
+   "lat": 13.04595,
+   "lng": 77.59804,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 7.19,
+   "missed_orders_month": 51,
+   "missed_sales_lakh_month": 1.3,
+   "redirected_orders_month": 24,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 19
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 72,
+   "store_orders_month": 24,
+   "catchment_customers": 6589,
+   "potential_orders_month": 320,
+   "incremental_orders_month": 178,
+   "cannibalised_orders_month": 142,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 108,
+     "salesLakhPerMonth": 2.77
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 34,
+     "salesLakhPerMonth": 0.87
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 53,
+   "est_sales_lakh_month": 8.19,
+   "est_profit_lakh_month": 0.97,
+   "payback_months": 36.2,
+   "annual_roi_pct": 33.1,
+   "verdict": "Below payback target",
+   "opportunity_index": 77
+  },
+  {
+   "pin": "560025",
+   "name": "Museum Road",
+   "zone": "core",
+   "lat": 12.96546,
+   "lng": 77.60682,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.23,
+   "missed_orders_month": 9,
+   "missed_sales_lakh_month": 0.22,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 24,
+   "store_orders_month": 19,
+   "catchment_customers": 2510,
+   "potential_orders_month": 187,
+   "incremental_orders_month": 35,
+   "cannibalised_orders_month": 153,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 101,
+     "salesLakhPerMonth": 2.58
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 36,
+     "salesLakhPerMonth": 0.92
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 13,
+     "salesLakhPerMonth": 0.34
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.07
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 31,
+   "est_sales_lakh_month": 4.79,
+   "est_profit_lakh_month": -0.22,
+   "payback_months": null,
+   "annual_roi_pct": -7.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 15
+  },
+  {
+   "pin": "560026",
+   "name": "Governmemnt Electric Factory",
+   "zone": "inner",
+   "lat": 12.94864,
+   "lng": 77.53427,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 7.46,
+   "missed_orders_month": 34,
+   "missed_sales_lakh_month": 0.86,
+   "redirected_orders_month": 14,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 11
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 48,
+   "store_orders_month": 14,
+   "catchment_customers": 8438,
+   "potential_orders_month": 428,
+   "incremental_orders_month": 230,
+   "cannibalised_orders_month": 198,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 145,
+     "salesLakhPerMonth": 3.72
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 52,
+     "salesLakhPerMonth": 1.34
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 71,
+   "est_sales_lakh_month": 10.95,
+   "est_profit_lakh_month": 1.93,
+   "payback_months": 18.1,
+   "annual_roi_pct": 66.2,
+   "verdict": "Viable",
+   "opportunity_index": 100
+  },
+  {
+   "pin": "560027",
+   "name": "Wilson Garden",
+   "zone": "core",
+   "lat": 12.9571,
+   "lng": 77.59276,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.71,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.27,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 20,
+   "store_orders_month": 20,
+   "catchment_customers": 6690,
+   "potential_orders_month": 325,
+   "incremental_orders_month": 78,
+   "cannibalised_orders_month": 248,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 176,
+     "salesLakhPerMonth": 4.5
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 39,
+     "salesLakhPerMonth": 1
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 32,
+     "salesLakhPerMonth": 0.82
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.01
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 54,
+   "est_sales_lakh_month": 8.32,
+   "est_profit_lakh_month": 1.01,
+   "payback_months": 34.6,
+   "annual_roi_pct": 34.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 34
+  },
+  {
+   "pin": "560029",
+   "name": "Dharmaram College",
+   "zone": "inner",
+   "lat": 12.92837,
+   "lng": 77.60475,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 2.67,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.28,
+   "redirected_orders_month": 4,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 22,
+   "store_orders_month": 20,
+   "catchment_customers": 4575,
+   "potential_orders_month": 275,
+   "incremental_orders_month": 68,
+   "cannibalised_orders_month": 208,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 80,
+     "salesLakhPerMonth": 2.05
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 69,
+     "salesLakhPerMonth": 1.75
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 59,
+     "salesLakhPerMonth": 1.5
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 46,
+   "est_sales_lakh_month": 7.04,
+   "est_profit_lakh_month": 0.56,
+   "payback_months": 62.2,
+   "annual_roi_pct": 19.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 29
+  },
+  {
+   "pin": "560030",
+   "name": "Adugodi",
+   "zone": "core",
+   "lat": 12.94589,
+   "lng": 77.60731,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 3.24,
+   "missed_orders_month": 13,
+   "missed_sales_lakh_month": 0.33,
+   "redirected_orders_month": 4,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 22,
+   "store_orders_month": 24,
+   "catchment_customers": 3813,
+   "potential_orders_month": 256,
+   "incremental_orders_month": 59,
+   "cannibalised_orders_month": 197,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 88,
+     "salesLakhPerMonth": 2.24
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 81,
+     "salesLakhPerMonth": 2.07
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 25,
+     "salesLakhPerMonth": 0.63
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.09
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 43,
+   "est_sales_lakh_month": 6.54,
+   "est_profit_lakh_month": 0.39,
+   "payback_months": 90.3,
+   "annual_roi_pct": 13.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 26
+  },
+  {
+   "pin": "560032",
+   "name": "R T Nagar",
+   "zone": "inner",
+   "lat": 13.02532,
+   "lng": 77.59952,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 4.92,
+   "missed_orders_month": 28,
+   "missed_sales_lakh_month": 0.72,
+   "redirected_orders_month": 21,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 18
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 43,
+   "store_orders_month": 23,
+   "catchment_customers": 7461,
+   "potential_orders_month": 336,
+   "incremental_orders_month": 148,
+   "cannibalised_orders_month": 189,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 146,
+     "salesLakhPerMonth": 3.72
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 43,
+     "salesLakhPerMonth": 1.1
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 56,
+   "est_sales_lakh_month": 8.59,
+   "est_profit_lakh_month": 1.11,
+   "payback_months": 31.7,
+   "annual_roi_pct": 37.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 64
+  },
+  {
+   "pin": "560033",
+   "name": "Maruthi Sevanagar",
+   "zone": "inner",
+   "lat": 13.00315,
+   "lng": 77.64071,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 1.66,
+   "missed_orders_month": 5,
+   "missed_sales_lakh_month": 0.13,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 13,
+   "store_orders_month": 27,
+   "catchment_customers": 5240,
+   "potential_orders_month": 244,
+   "incremental_orders_month": 48,
+   "cannibalised_orders_month": 197,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 162,
+     "salesLakhPerMonth": 4.13
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 35,
+     "salesLakhPerMonth": 0.88
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 41,
+   "est_sales_lakh_month": 6.24,
+   "est_profit_lakh_month": 0.28,
+   "payback_months": 123.1,
+   "annual_roi_pct": 9.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 21
+  },
+  {
+   "pin": "560034",
+   "name": "Koramangala",
+   "zone": "inner",
+   "lat": 12.92608,
+   "lng": 77.62927,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 0,
+   "missed_orders_month": 1,
+   "missed_sales_lakh_month": 0.02,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 12,
+   "store_orders_month": 55,
+   "catchment_customers": 2616,
+   "potential_orders_month": 168,
+   "incremental_orders_month": 0,
+   "cannibalised_orders_month": 168,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 168,
+     "salesLakhPerMonth": 4.3
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 28,
+   "est_sales_lakh_month": 4.3,
+   "est_profit_lakh_month": -0.4,
+   "payback_months": null,
+   "annual_roi_pct": -13.6,
+   "verdict": "Existing store here",
+   "opportunity_index": 0
+  },
+  {
+   "pin": "560035",
+   "name": "Carmelram",
+   "zone": "outer",
+   "lat": 12.9022,
+   "lng": 77.70007,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 8.12,
+   "missed_orders_month": 68,
+   "missed_sales_lakh_month": 1.74,
+   "redirected_orders_month": 19,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 14
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 107,
+   "store_orders_month": 19,
+   "catchment_customers": 3010,
+   "potential_orders_month": 177,
+   "incremental_orders_month": 86,
+   "cannibalised_orders_month": 91,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 55,
+     "salesLakhPerMonth": 1.41
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 23,
+     "salesLakhPerMonth": 0.59
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.27
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.05
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 29,
+   "est_sales_lakh_month": 4.51,
+   "est_profit_lakh_month": -0.32,
+   "payback_months": null,
+   "annual_roi_pct": -11,
+   "verdict": "Below payback target",
+   "opportunity_index": 37
+  },
+  {
+   "pin": "560036",
+   "name": "Krishnarajapuram",
+   "zone": "outer",
+   "lat": 13.02292,
+   "lng": 77.69978,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 7.04,
+   "missed_orders_month": 38,
+   "missed_sales_lakh_month": 0.96,
+   "redirected_orders_month": 16,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 8
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 8
+    }
+   ],
+   "online_orders_month": 59,
+   "store_orders_month": 16,
+   "catchment_customers": 2469,
+   "potential_orders_month": 144,
+   "incremental_orders_month": 62,
+   "cannibalised_orders_month": 82,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 64,
+     "salesLakhPerMonth": 1.63
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 18,
+     "salesLakhPerMonth": 0.47
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 24,
+   "est_sales_lakh_month": 3.67,
+   "est_profit_lakh_month": -0.62,
+   "payback_months": null,
+   "annual_roi_pct": -21.1,
+   "verdict": "Below payback target",
+   "opportunity_index": 27
+  },
+  {
+   "pin": "560037",
+   "name": "Marathahalli Colony",
+   "zone": "inner",
+   "lat": 12.95493,
+   "lng": 77.68908,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 6.07,
+   "missed_orders_month": 68,
+   "missed_sales_lakh_month": 1.75,
+   "redirected_orders_month": 36,
+   "redirected_to": [
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 14
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 14
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 8
+    }
+   ],
+   "online_orders_month": 121,
+   "store_orders_month": 49,
+   "catchment_customers": 3515,
+   "potential_orders_month": 236,
+   "incremental_orders_month": 89,
+   "cannibalised_orders_month": 147,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 52,
+     "salesLakhPerMonth": 1.33
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 48,
+     "salesLakhPerMonth": 1.22
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 47,
+     "salesLakhPerMonth": 1.21
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 39,
+   "est_sales_lakh_month": 6.04,
+   "est_profit_lakh_month": 0.21,
+   "payback_months": 163.2,
+   "annual_roi_pct": 7.4,
+   "verdict": "Below payback target",
+   "opportunity_index": 39
+  },
+  {
+   "pin": "560038",
+   "name": "Indiranagar",
+   "zone": "inner",
+   "lat": 12.98882,
+   "lng": 77.64502,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 0,
+   "missed_orders_month": 3,
+   "missed_sales_lakh_month": 0.09,
+   "redirected_orders_month": 8,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 8
+    }
+   ],
+   "online_orders_month": 26,
+   "store_orders_month": 49,
+   "catchment_customers": 3584,
+   "potential_orders_month": 205,
+   "incremental_orders_month": 0,
+   "cannibalised_orders_month": 205,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 205,
+     "salesLakhPerMonth": 5.23
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 34,
+   "est_sales_lakh_month": 5.23,
+   "est_profit_lakh_month": -0.07,
+   "payback_months": null,
+   "annual_roi_pct": -2.4,
+   "verdict": "Existing store here",
+   "opportunity_index": 0
+  },
+  {
+   "pin": "560040",
+   "name": "Vijayanagar",
+   "zone": "inner",
+   "lat": 12.96771,
+   "lng": 77.5347,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 6.64,
+   "missed_orders_month": 33,
+   "missed_sales_lakh_month": 0.83,
+   "redirected_orders_month": 13,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 11
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 50,
+   "store_orders_month": 13,
+   "catchment_customers": 9609,
+   "potential_orders_month": 448,
+   "incremental_orders_month": 231,
+   "cannibalised_orders_month": 217,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 180,
+     "salesLakhPerMonth": 4.59
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 37,
+     "salesLakhPerMonth": 0.95
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 75,
+   "est_sales_lakh_month": 11.44,
+   "est_profit_lakh_month": 2.1,
+   "payback_months": 16.6,
+   "annual_roi_pct": 72.1,
+   "verdict": "Viable",
+   "opportunity_index": 100
+  },
+  {
+   "pin": "560041",
+   "name": "Jayanagar",
+   "zone": "inner",
+   "lat": 12.92082,
+   "lng": 77.5905,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 3.91,
+   "missed_orders_month": 27,
+   "missed_sales_lakh_month": 0.68,
+   "redirected_orders_month": 13,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 9
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 49,
+   "store_orders_month": 28,
+   "catchment_customers": 6920,
+   "potential_orders_month": 362,
+   "incremental_orders_month": 114,
+   "cannibalised_orders_month": 248,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 132,
+     "salesLakhPerMonth": 3.37
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 69,
+     "salesLakhPerMonth": 1.77
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 47,
+     "salesLakhPerMonth": 1.19
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 60,
+   "est_sales_lakh_month": 9.24,
+   "est_profit_lakh_month": 1.34,
+   "payback_months": 26.2,
+   "annual_roi_pct": 45.8,
+   "verdict": "Viable",
+   "opportunity_index": 49
+  },
+  {
+   "pin": "560042",
+   "name": "Sivan Chetty Gardens",
+   "zone": "core",
+   "lat": 12.98406,
+   "lng": 77.61827,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.6,
+   "missed_orders_month": 6,
+   "missed_sales_lakh_month": 0.16,
+   "redirected_orders_month": 0,
+   "redirected_to": [],
+   "online_orders_month": 11,
+   "store_orders_month": 18,
+   "catchment_customers": 2437,
+   "potential_orders_month": 152,
+   "incremental_orders_month": 22,
+   "cannibalised_orders_month": 130,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 65,
+     "salesLakhPerMonth": 1.66
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 62,
+     "salesLakhPerMonth": 1.58
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.08
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 25,
+   "est_sales_lakh_month": 3.88,
+   "est_profit_lakh_month": -0.54,
+   "payback_months": null,
+   "annual_roi_pct": -18.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 10
+  },
+  {
+   "pin": "560043",
+   "name": "Kalyananagar",
+   "zone": "inner",
+   "lat": 13.02301,
+   "lng": 77.64254,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 3.81,
+   "missed_orders_month": 37,
+   "missed_sales_lakh_month": 0.94,
+   "redirected_orders_month": 19,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 13
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 66,
+   "store_orders_month": 36,
+   "catchment_customers": 5616,
+   "potential_orders_month": 273,
+   "incremental_orders_month": 99,
+   "cannibalised_orders_month": 175,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 129,
+     "salesLakhPerMonth": 3.29
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 44,
+     "salesLakhPerMonth": 1.13
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.04
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 46,
+   "est_sales_lakh_month": 6.99,
+   "est_profit_lakh_month": 0.54,
+   "payback_months": 64.2,
+   "annual_roi_pct": 18.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 43
+  },
+  {
+   "pin": "560045",
+   "name": "Arabic College",
+   "zone": "inner",
+   "lat": 13.03559,
+   "lng": 77.6163,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 6.06,
+   "missed_orders_month": 28,
+   "missed_sales_lakh_month": 0.72,
+   "redirected_orders_month": 14,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 10
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 4
+    }
+   ],
+   "online_orders_month": 44,
+   "store_orders_month": 14,
+   "catchment_customers": 6759,
+   "potential_orders_month": 303,
+   "incremental_orders_month": 140,
+   "cannibalised_orders_month": 163,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 96,
+     "salesLakhPerMonth": 2.45
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 68,
+     "salesLakhPerMonth": 1.73
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 51,
+   "est_sales_lakh_month": 7.75,
+   "est_profit_lakh_month": 0.81,
+   "payback_months": 43.1,
+   "annual_roi_pct": 27.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 61
+  },
+  {
+   "pin": "560047",
+   "name": "Viveknagar",
+   "zone": "core",
+   "lat": 12.95056,
+   "lng": 77.62134,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 2.85,
+   "missed_orders_month": 10,
+   "missed_sales_lakh_month": 0.25,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 18,
+   "store_orders_month": 21,
+   "catchment_customers": 2381,
+   "potential_orders_month": 189,
+   "incremental_orders_month": 36,
+   "cannibalised_orders_month": 153,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 86,
+     "salesLakhPerMonth": 2.19
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 41,
+     "salesLakhPerMonth": 1.04
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 25,
+     "salesLakhPerMonth": 0.63
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.04
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 31,
+   "est_sales_lakh_month": 4.83,
+   "est_profit_lakh_month": -0.21,
+   "payback_months": null,
+   "annual_roi_pct": -7.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560048",
+   "name": "Mahadevapura",
+   "zone": "outer",
+   "lat": 12.98949,
+   "lng": 77.70808,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 4.29,
+   "missed_orders_month": 27,
+   "missed_sales_lakh_month": 0.69,
+   "redirected_orders_month": 16,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 10
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 7
+    }
+   ],
+   "online_orders_month": 45,
+   "store_orders_month": 29,
+   "catchment_customers": 2648,
+   "potential_orders_month": 166,
+   "incremental_orders_month": 51,
+   "cannibalised_orders_month": 115,
+   "cannibalised_from": [
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 57,
+     "salesLakhPerMonth": 1.46
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 55,
+     "salesLakhPerMonth": 1.4
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.07
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 28,
+   "est_sales_lakh_month": 4.24,
+   "est_profit_lakh_month": -0.42,
+   "payback_months": null,
+   "annual_roi_pct": -14.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 22
+  },
+  {
+   "pin": "560049",
+   "name": "Virgonagar",
+   "zone": "outer",
+   "lat": 13.0598,
+   "lng": 77.72876,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 10.01,
+   "missed_orders_month": 6,
+   "missed_sales_lakh_month": 0.15,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 7,
+   "store_orders_month": 3,
+   "catchment_customers": 1161,
+   "potential_orders_month": 39,
+   "incremental_orders_month": 15,
+   "cannibalised_orders_month": 24,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.49
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 5,
+     "salesLakhPerMonth": 0.12
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 6,
+   "est_sales_lakh_month": 1,
+   "est_profit_lakh_month": -1.55,
+   "payback_months": null,
+   "annual_roi_pct": -53.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 6
+  },
+  {
+   "pin": "560050",
+   "name": "Banashankari",
+   "zone": "inner",
+   "lat": 12.94159,
+   "lng": 77.55546,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 6.11,
+   "missed_orders_month": 24,
+   "missed_sales_lakh_month": 0.61,
+   "redirected_orders_month": 10,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 9
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 39,
+   "store_orders_month": 10,
+   "catchment_customers": 8755,
+   "potential_orders_month": 454,
+   "incremental_orders_month": 210,
+   "cannibalised_orders_month": 244,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 156,
+     "salesLakhPerMonth": 3.98
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 74,
+     "salesLakhPerMonth": 1.89
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 14,
+     "salesLakhPerMonth": 0.37
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 76,
+   "est_sales_lakh_month": 11.61,
+   "est_profit_lakh_month": 2.16,
+   "payback_months": 16.2,
+   "annual_roi_pct": 74.2,
+   "verdict": "Viable",
+   "opportunity_index": 91
+  },
+  {
+   "pin": "560051",
+   "name": "H K P Road",
+   "zone": "core",
+   "lat": 12.98846,
+   "lng": 77.6024,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 1.17,
+   "missed_orders_month": 2,
+   "missed_sales_lakh_month": 0.04,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 9,
+   "store_orders_month": 16,
+   "catchment_customers": 5575,
+   "potential_orders_month": 213,
+   "incremental_orders_month": 25,
+   "cannibalised_orders_month": 189,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 165,
+     "salesLakhPerMonth": 4.21
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 24,
+     "salesLakhPerMonth": 0.61
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 36,
+   "est_sales_lakh_month": 5.45,
+   "est_profit_lakh_month": 0.01,
+   "payback_months": 3830.8,
+   "annual_roi_pct": 0.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 11
+  },
+  {
+   "pin": "560053",
+   "name": "Chickpet",
+   "zone": "core",
+   "lat": 12.9696,
+   "lng": 77.57337,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 2.63,
+   "missed_orders_month": 6,
+   "missed_sales_lakh_month": 0.14,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 11,
+   "store_orders_month": 13,
+   "catchment_customers": 10627,
+   "potential_orders_month": 455,
+   "incremental_orders_month": 130,
+   "cannibalised_orders_month": 325,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 286,
+     "salesLakhPerMonth": 7.31
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 27,
+     "salesLakhPerMonth": 0.7
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.29
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 76,
+   "est_sales_lakh_month": 11.63,
+   "est_profit_lakh_month": 2.17,
+   "payback_months": 16.1,
+   "annual_roi_pct": 74.5,
+   "verdict": "Viable",
+   "opportunity_index": 56
+  },
+  {
+   "pin": "560054",
+   "name": "Msrit",
+   "zone": "inner",
+   "lat": 13.03519,
+   "lng": 77.55738,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 7.2,
+   "missed_orders_month": 16,
+   "missed_sales_lakh_month": 0.4,
+   "redirected_orders_month": 4,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 25,
+   "store_orders_month": 4,
+   "catchment_customers": 8351,
+   "potential_orders_month": 362,
+   "incremental_orders_month": 189,
+   "cannibalised_orders_month": 173,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 163,
+     "salesLakhPerMonth": 4.16
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 10,
+     "salesLakhPerMonth": 0.25
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 60,
+   "est_sales_lakh_month": 9.24,
+   "est_profit_lakh_month": 1.33,
+   "payback_months": 26.2,
+   "annual_roi_pct": 45.7,
+   "verdict": "Viable",
+   "opportunity_index": 82
+  },
+  {
+   "pin": "560055",
+   "name": "Malleswaram West",
+   "zone": "core",
+   "lat": 13.01053,
+   "lng": 77.5608,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 4.87,
+   "missed_orders_month": 10,
+   "missed_sales_lakh_month": 0.25,
+   "redirected_orders_month": 9,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 7
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 14,
+   "store_orders_month": 9,
+   "catchment_customers": 10719,
+   "potential_orders_month": 453,
+   "incremental_orders_month": 188,
+   "cannibalised_orders_month": 265,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 259,
+     "salesLakhPerMonth": 6.61
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.14
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 76,
+   "est_sales_lakh_month": 11.58,
+   "est_profit_lakh_month": 2.15,
+   "payback_months": 16.3,
+   "annual_roi_pct": 73.8,
+   "verdict": "Viable",
+   "opportunity_index": 81
+  },
+  {
+   "pin": "560056",
+   "name": "Bengaluru vishwavidyalaya",
+   "zone": "inner",
+   "lat": 12.94856,
+   "lng": 77.49935,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 10.93,
+   "missed_orders_month": 34,
+   "missed_sales_lakh_month": 0.86,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 50,
+   "store_orders_month": 3,
+   "catchment_customers": 6649,
+   "potential_orders_month": 300,
+   "incremental_orders_month": 178,
+   "cannibalised_orders_month": 122,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 86,
+     "salesLakhPerMonth": 2.21
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 35,
+     "salesLakhPerMonth": 0.9
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 50,
+   "est_sales_lakh_month": 7.66,
+   "est_profit_lakh_month": 0.78,
+   "payback_months": 44.8,
+   "annual_roi_pct": 26.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 77
+  },
+  {
+   "pin": "560057",
+   "name": "Peenya Dasarahalli",
+   "zone": "inner",
+   "lat": 13.05247,
+   "lng": 77.51289,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 11.85,
+   "missed_orders_month": 26,
+   "missed_sales_lakh_month": 0.67,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 38,
+   "store_orders_month": 3,
+   "catchment_customers": 5575,
+   "potential_orders_month": 226,
+   "incremental_orders_month": 147,
+   "cannibalised_orders_month": 79,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 78,
+     "salesLakhPerMonth": 1.98
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.03
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 38,
+   "est_sales_lakh_month": 5.79,
+   "est_profit_lakh_month": 0.13,
+   "payback_months": 279.2,
+   "annual_roi_pct": 4.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 64
+  },
+  {
+   "pin": "560058",
+   "name": "Peenya Small Industries",
+   "zone": "inner",
+   "lat": 13.01948,
+   "lng": 77.51015,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 10.06,
+   "missed_orders_month": 15,
+   "missed_sales_lakh_month": 0.38,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 21,
+   "store_orders_month": 3,
+   "catchment_customers": 6970,
+   "potential_orders_month": 268,
+   "incremental_orders_month": 151,
+   "cannibalised_orders_month": 117,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 114,
+     "salesLakhPerMonth": 2.91
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.06
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 45,
+   "est_sales_lakh_month": 6.85,
+   "est_profit_lakh_month": 0.5,
+   "payback_months": 70.2,
+   "annual_roi_pct": 17.1,
+   "verdict": "Below payback target",
+   "opportunity_index": 65
+  },
+  {
+   "pin": "560059",
+   "name": "Rv Niketan",
+   "zone": "inner",
+   "lat": 12.92019,
+   "lng": 77.49934,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 11.61,
+   "missed_orders_month": 27,
+   "missed_sales_lakh_month": 0.69,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 40,
+   "store_orders_month": 2,
+   "catchment_customers": 5534,
+   "potential_orders_month": 268,
+   "incremental_orders_month": 167,
+   "cannibalised_orders_month": 101,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 54,
+     "salesLakhPerMonth": 1.38
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 48,
+     "salesLakhPerMonth": 1.21
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 45,
+   "est_sales_lakh_month": 6.85,
+   "est_profit_lakh_month": 0.5,
+   "payback_months": 70.5,
+   "annual_roi_pct": 17,
+   "verdict": "Below payback target",
+   "opportunity_index": 72
+  },
+  {
+   "pin": "560060",
+   "name": "Kengeri",
+   "zone": "outer",
+   "lat": 12.9203,
+   "lng": 77.46834,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 14.84,
+   "missed_orders_month": 42,
+   "missed_sales_lakh_month": 1.08,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 59,
+   "store_orders_month": 5,
+   "catchment_customers": 3951,
+   "potential_orders_month": 154,
+   "incremental_orders_month": 97,
+   "cannibalised_orders_month": 57,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 30,
+     "salesLakhPerMonth": 0.77
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 27,
+     "salesLakhPerMonth": 0.69
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 26,
+   "est_sales_lakh_month": 3.94,
+   "est_profit_lakh_month": -0.52,
+   "payback_months": null,
+   "annual_roi_pct": -17.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 42
+  },
+  {
+   "pin": "560061",
+   "name": "Subramanyapura",
+   "zone": "inner",
+   "lat": 12.90216,
+   "lng": 77.54161,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 6.65,
+   "missed_orders_month": 62,
+   "missed_sales_lakh_month": 1.59,
+   "redirected_orders_month": 28,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 24
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 93,
+   "store_orders_month": 28,
+   "catchment_customers": 6589,
+   "potential_orders_month": 330,
+   "incremental_orders_month": 178,
+   "cannibalised_orders_month": 153,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 97,
+     "salesLakhPerMonth": 2.48
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 55,
+     "salesLakhPerMonth": 1.42
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 55,
+   "est_sales_lakh_month": 8.44,
+   "est_profit_lakh_month": 1.06,
+   "payback_months": 33.2,
+   "annual_roi_pct": 36.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 77
+  },
+  {
+   "pin": "560062",
+   "name": "Doddakallasandra",
+   "zone": "inner",
+   "lat": 12.88254,
+   "lng": 77.56256,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 4.2,
+   "missed_orders_month": 20,
+   "missed_sales_lakh_month": 0.51,
+   "redirected_orders_month": 11,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 7
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 4
+    }
+   ],
+   "online_orders_month": 34,
+   "store_orders_month": 20,
+   "catchment_customers": 5502,
+   "potential_orders_month": 252,
+   "incremental_orders_month": 100,
+   "cannibalised_orders_month": 153,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 128,
+     "salesLakhPerMonth": 3.28
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 24,
+     "salesLakhPerMonth": 0.62
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 42,
+   "est_sales_lakh_month": 6.45,
+   "est_profit_lakh_month": 0.36,
+   "payback_months": 97.9,
+   "annual_roi_pct": 12.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 43
+  },
+  {
+   "pin": "560063",
+   "name": "A F Station Yelahanka",
+   "zone": "outer",
+   "lat": 13.13203,
+   "lng": 77.61383,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 16.28,
+   "missed_orders_month": 18,
+   "missed_sales_lakh_month": 0.47,
+   "redirected_orders_month": 0,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 26,
+   "store_orders_month": 0,
+   "catchment_customers": 2336,
+   "potential_orders_month": 74,
+   "incremental_orders_month": 49,
+   "cannibalised_orders_month": 25,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.49
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.15
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 12,
+   "est_sales_lakh_month": 1.9,
+   "est_profit_lakh_month": -1.23,
+   "payback_months": null,
+   "annual_roi_pct": -42.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 21
+  },
+  {
+   "pin": "560064",
+   "name": "Yelahanka",
+   "zone": "outer",
+   "lat": 13.10134,
+   "lng": 77.60538,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 13.23,
+   "missed_orders_month": 42,
+   "missed_sales_lakh_month": 1.08,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 59,
+   "store_orders_month": 5,
+   "catchment_customers": 3946,
+   "potential_orders_month": 138,
+   "incremental_orders_month": 81,
+   "cannibalised_orders_month": 57,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 45,
+     "salesLakhPerMonth": 1.16
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.29
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 23,
+   "est_sales_lakh_month": 3.54,
+   "est_profit_lakh_month": -0.66,
+   "payback_months": null,
+   "annual_roi_pct": -22.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 35
+  },
+  {
+   "pin": "560065",
+   "name": "G K V K",
+   "zone": "inner",
+   "lat": 13.08347,
+   "lng": 77.5769,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 11.51,
+   "missed_orders_month": 10,
+   "missed_sales_lakh_month": 0.26,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 13,
+   "store_orders_month": 2,
+   "catchment_customers": 5029,
+   "potential_orders_month": 212,
+   "incremental_orders_month": 129,
+   "cannibalised_orders_month": 82,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 70,
+     "salesLakhPerMonth": 1.8
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 12,
+     "salesLakhPerMonth": 0.3
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 35,
+   "est_sales_lakh_month": 5.41,
+   "est_profit_lakh_month": -0.01,
+   "payback_months": null,
+   "annual_roi_pct": -0.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 56
+  },
+  {
+   "pin": "560066",
+   "name": "Whitefield",
+   "zone": "outer",
+   "lat": 12.97077,
+   "lng": 77.74266,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 0,
+   "missed_orders_month": 19,
+   "missed_sales_lakh_month": 0.48,
+   "redirected_orders_month": 8,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 8
+    }
+   ],
+   "online_orders_month": 54,
+   "store_orders_month": 60,
+   "catchment_customers": 1739,
+   "potential_orders_month": 84,
+   "incremental_orders_month": 0,
+   "cannibalised_orders_month": 84,
+   "cannibalised_from": [
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 84,
+     "salesLakhPerMonth": 2.15
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 14,
+   "est_sales_lakh_month": 2.16,
+   "est_profit_lakh_month": -1.15,
+   "payback_months": null,
+   "annual_roi_pct": -39.3,
+   "verdict": "Existing store here",
+   "opportunity_index": 0
+  },
+  {
+   "pin": "560067",
+   "name": "Kadugodi",
+   "zone": "outer",
+   "lat": 13.00196,
+   "lng": 77.78107,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 5.42,
+   "missed_orders_month": 31,
+   "missed_sales_lakh_month": 0.8,
+   "redirected_orders_month": 14,
+   "redirected_to": [
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 11
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 53,
+   "store_orders_month": 24,
+   "catchment_customers": 638,
+   "potential_orders_month": 45,
+   "incremental_orders_month": 20,
+   "cannibalised_orders_month": 24,
+   "cannibalised_from": [
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 24,
+     "salesLakhPerMonth": 0.62
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 7,
+   "est_sales_lakh_month": 1.14,
+   "est_profit_lakh_month": -1.5,
+   "payback_months": null,
+   "annual_roi_pct": -51.5,
+   "verdict": "Below payback target",
+   "opportunity_index": 9
+  },
+  {
+   "pin": "560068",
+   "name": "Bommanahalli",
+   "zone": "inner",
+   "lat": 12.89758,
+   "lng": 77.63908,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 3.34,
+   "missed_orders_month": 49,
+   "missed_sales_lakh_month": 1.24,
+   "redirected_orders_month": 20,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 13
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 8
+    }
+   ],
+   "online_orders_month": 89,
+   "store_orders_month": 52,
+   "catchment_customers": 3497,
+   "potential_orders_month": 204,
+   "incremental_orders_month": 65,
+   "cannibalised_orders_month": 138,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 93,
+     "salesLakhPerMonth": 2.36
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 43,
+     "salesLakhPerMonth": 1.1
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.07
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 34,
+   "est_sales_lakh_month": 5.2,
+   "est_profit_lakh_month": -0.08,
+   "payback_months": null,
+   "annual_roi_pct": -2.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 28
+  },
+  {
+   "pin": "560070",
+   "name": "B Sk II Stage",
+   "zone": "inner",
+   "lat": 12.92265,
+   "lng": 77.567,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 5.4,
+   "missed_orders_month": 23,
+   "missed_sales_lakh_month": 0.59,
+   "redirected_orders_month": 10,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 7
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 40,
+   "store_orders_month": 10,
+   "catchment_customers": 8195,
+   "potential_orders_month": 419,
+   "incremental_orders_month": 173,
+   "cannibalised_orders_month": 246,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 123,
+     "salesLakhPerMonth": 3.13
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 98,
+     "salesLakhPerMonth": 2.5
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 25,
+     "salesLakhPerMonth": 0.64
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 70,
+   "est_sales_lakh_month": 10.71,
+   "est_profit_lakh_month": 1.85,
+   "payback_months": 19,
+   "annual_roi_pct": 63.3,
+   "verdict": "Viable",
+   "opportunity_index": 75
+  },
+  {
+   "pin": "560071",
+   "name": "Domlur",
+   "zone": "inner",
+   "lat": 12.95767,
+   "lng": 77.63953,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 3.51,
+   "missed_orders_month": 12,
+   "missed_sales_lakh_month": 0.32,
+   "redirected_orders_month": 1,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 23,
+   "store_orders_month": 19,
+   "catchment_customers": 2455,
+   "potential_orders_month": 194,
+   "incremental_orders_month": 49,
+   "cannibalised_orders_month": 145,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 76,
+     "salesLakhPerMonth": 1.93
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 59,
+     "salesLakhPerMonth": 1.51
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 8,
+     "salesLakhPerMonth": 0.2
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.05
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 32,
+   "est_sales_lakh_month": 4.95,
+   "est_profit_lakh_month": -0.17,
+   "payback_months": null,
+   "annual_roi_pct": -5.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 21
+  },
+  {
+   "pin": "560072",
+   "name": "Nagarbhavi",
+   "zone": "inner",
+   "lat": 12.96688,
+   "lng": 77.51542,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 8.71,
+   "missed_orders_month": 28,
+   "missed_sales_lakh_month": 0.71,
+   "redirected_orders_month": 8,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 7
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 40,
+   "store_orders_month": 8,
+   "catchment_customers": 8452,
+   "potential_orders_month": 381,
+   "incremental_orders_month": 210,
+   "cannibalised_orders_month": 171,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 140,
+     "salesLakhPerMonth": 3.58
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 31,
+     "salesLakhPerMonth": 0.8
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 63,
+   "est_sales_lakh_month": 9.73,
+   "est_profit_lakh_month": 1.51,
+   "payback_months": 23.2,
+   "annual_roi_pct": 51.6,
+   "verdict": "Viable",
+   "opportunity_index": 91
+  },
+  {
+   "pin": "560073",
+   "name": "Nagasandra",
+   "zone": "outer",
+   "lat": 13.04715,
+   "lng": 77.49168,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 13.31,
+   "missed_orders_month": 32,
+   "missed_sales_lakh_month": 0.83,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 44,
+   "store_orders_month": 5,
+   "catchment_customers": 4795,
+   "potential_orders_month": 173,
+   "incremental_orders_month": 113,
+   "cannibalised_orders_month": 60,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 59,
+     "salesLakhPerMonth": 1.51
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 29,
+   "est_sales_lakh_month": 4.43,
+   "est_profit_lakh_month": -0.35,
+   "payback_months": null,
+   "annual_roi_pct": -12,
+   "verdict": "Below payback target",
+   "opportunity_index": 49
+  },
+  {
+   "pin": "560074",
+   "name": "Kumbalagodu",
+   "zone": "outer",
+   "lat": 12.87809,
+   "lng": 77.4429,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 17.17,
+   "missed_orders_month": 20,
+   "missed_sales_lakh_month": 0.51,
+   "redirected_orders_month": 1,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 28,
+   "store_orders_month": 1,
+   "catchment_customers": 2221,
+   "potential_orders_month": 59,
+   "incremental_orders_month": 36,
+   "cannibalised_orders_month": 23,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 15,
+     "salesLakhPerMonth": 0.38
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 9,
+     "salesLakhPerMonth": 0.22
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 10,
+   "est_sales_lakh_month": 1.51,
+   "est_profit_lakh_month": -1.37,
+   "payback_months": null,
+   "annual_roi_pct": -47,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560075",
+   "name": "New Thippasandra",
+   "zone": "inner",
+   "lat": 12.9736,
+   "lng": 77.66202,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 2.5,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.27,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 24,
+   "store_orders_month": 24,
+   "catchment_customers": 3437,
+   "potential_orders_month": 246,
+   "incremental_orders_month": 62,
+   "cannibalised_orders_month": 184,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 131,
+     "salesLakhPerMonth": 3.35
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 33,
+     "salesLakhPerMonth": 0.85
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.49
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 41,
+   "est_sales_lakh_month": 6.27,
+   "est_profit_lakh_month": 0.3,
+   "payback_months": 118.3,
+   "annual_roi_pct": 10.1,
+   "verdict": "Below payback target",
+   "opportunity_index": 27
+  },
+  {
+   "pin": "560076",
+   "name": "Bannerghatta Road",
+   "zone": "inner",
+   "lat": 12.88716,
+   "lng": 77.601,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 0,
+   "missed_orders_month": 21,
+   "missed_sales_lakh_month": 0.54,
+   "redirected_orders_month": 10,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 10
+    }
+   ],
+   "online_orders_month": 66,
+   "store_orders_month": 92,
+   "catchment_customers": 3712,
+   "potential_orders_month": 163,
+   "incremental_orders_month": 0,
+   "cannibalised_orders_month": 163,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 163,
+     "salesLakhPerMonth": 4.17
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 27,
+   "est_sales_lakh_month": 4.18,
+   "est_profit_lakh_month": -0.44,
+   "payback_months": null,
+   "annual_roi_pct": -15,
+   "verdict": "Existing store here",
+   "opportunity_index": 0
+  },
+  {
+   "pin": "560077",
+   "name": "Dr. Shivarama Karanth Nagar",
+   "zone": "outer",
+   "lat": 13.07403,
+   "lng": 77.66183,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 9.65,
+   "missed_orders_month": 12,
+   "missed_sales_lakh_month": 0.29,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 16,
+   "store_orders_month": 3,
+   "catchment_customers": 3345,
+   "potential_orders_month": 123,
+   "incremental_orders_month": 52,
+   "cannibalised_orders_month": 71,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 49,
+     "salesLakhPerMonth": 1.26
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.49
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.06
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 21,
+   "est_sales_lakh_month": 3.15,
+   "est_profit_lakh_month": -0.8,
+   "payback_months": null,
+   "annual_roi_pct": -27.4,
+   "verdict": "Below payback target",
+   "opportunity_index": 23
+  },
+  {
+   "pin": "560078",
+   "name": "J P Nagar",
+   "zone": "inner",
+   "lat": 12.90038,
+   "lng": 77.58374,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 2.38,
+   "missed_orders_month": 32,
+   "missed_sales_lakh_month": 0.81,
+   "redirected_orders_month": 10,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 9
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 68,
+   "store_orders_month": 65,
+   "catchment_customers": 6851,
+   "potential_orders_month": 343,
+   "incremental_orders_month": 94,
+   "cannibalised_orders_month": 249,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 188,
+     "salesLakhPerMonth": 4.81
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 37,
+     "salesLakhPerMonth": 0.94
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 24,
+     "salesLakhPerMonth": 0.61
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 57,
+   "est_sales_lakh_month": 8.76,
+   "est_profit_lakh_month": 1.17,
+   "payback_months": 30,
+   "annual_roi_pct": 40,
+   "verdict": "Viable",
+   "opportunity_index": 41
+  },
+  {
+   "pin": "560079",
+   "name": "Basaveshwaranagar",
+   "zone": "inner",
+   "lat": 12.98776,
+   "lng": 77.53282,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 6.71,
+   "missed_orders_month": 54,
+   "missed_sales_lakh_month": 1.39,
+   "redirected_orders_month": 23,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 19
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 82,
+   "store_orders_month": 23,
+   "catchment_customers": 9604,
+   "potential_orders_month": 428,
+   "incremental_orders_month": 219,
+   "cannibalised_orders_month": 209,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 191,
+     "salesLakhPerMonth": 4.89
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 17,
+     "salesLakhPerMonth": 0.45
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 71,
+   "est_sales_lakh_month": 10.94,
+   "est_profit_lakh_month": 1.93,
+   "payback_months": 18.2,
+   "annual_roi_pct": 66.1,
+   "verdict": "Viable",
+   "opportunity_index": 95
+  },
+  {
+   "pin": "560080",
+   "name": "Sadashivanagar",
+   "zone": "core",
+   "lat": 13.01157,
+   "lng": 77.5796,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 3.72,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.29,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 21,
+   "store_orders_month": 13,
+   "catchment_customers": 10127,
+   "potential_orders_month": 419,
+   "incremental_orders_month": 154,
+   "cannibalised_orders_month": 264,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 248,
+     "salesLakhPerMonth": 6.35
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 16,
+     "salesLakhPerMonth": 0.41
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 70,
+   "est_sales_lakh_month": 10.7,
+   "est_profit_lakh_month": 1.84,
+   "payback_months": 19,
+   "annual_roi_pct": 63.2,
+   "verdict": "Viable",
+   "opportunity_index": 67
+  },
+  {
+   "pin": "560081",
+   "name": "Chandapura",
+   "zone": "outer",
+   "lat": 12.79792,
+   "lng": 77.70506,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 15.02,
+   "missed_orders_month": 6,
+   "missed_sales_lakh_month": 0.15,
+   "redirected_orders_month": 0,
+   "redirected_to": [],
+   "online_orders_month": 9,
+   "store_orders_month": 0,
+   "catchment_customers": 775,
+   "potential_orders_month": 31,
+   "incremental_orders_month": 20,
+   "cannibalised_orders_month": 11,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 9,
+     "salesLakhPerMonth": 0.24
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.03
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 5,
+   "est_sales_lakh_month": 0.79,
+   "est_profit_lakh_month": -1.62,
+   "payback_months": null,
+   "annual_roi_pct": -55.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 9
+  },
+  {
+   "pin": "560082",
+   "name": "Udaypura",
+   "zone": "outer",
+   "lat": 12.82628,
+   "lng": 77.51194,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 11.79,
+   "missed_orders_month": 7,
+   "missed_sales_lakh_month": 0.19,
+   "redirected_orders_month": 0,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 11,
+   "store_orders_month": 0,
+   "catchment_customers": 1647,
+   "potential_orders_month": 48,
+   "incremental_orders_month": 25,
+   "cannibalised_orders_month": 23,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 22,
+     "salesLakhPerMonth": 0.55
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.03
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 8,
+   "est_sales_lakh_month": 1.22,
+   "est_profit_lakh_month": -1.47,
+   "payback_months": null,
+   "annual_roi_pct": -50.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 11
+  },
+  {
+   "pin": "560083",
+   "name": "Bannerghatta",
+   "zone": "outer",
+   "lat": 12.77937,
+   "lng": 77.57929,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 12.21,
+   "missed_orders_month": 7,
+   "missed_sales_lakh_month": 0.19,
+   "redirected_orders_month": 1,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 11,
+   "store_orders_month": 1,
+   "catchment_customers": 564,
+   "potential_orders_month": 14,
+   "incremental_orders_month": 9,
+   "cannibalised_orders_month": 5,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 5,
+     "salesLakhPerMonth": 0.14
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 2,
+   "est_sales_lakh_month": 0.36,
+   "est_profit_lakh_month": -1.77,
+   "payback_months": null,
+   "annual_roi_pct": -60.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 4
+  },
+  {
+   "pin": "560084",
+   "name": "St. Thomas Town",
+   "zone": "inner",
+   "lat": 13.01301,
+   "lng": 77.62745,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 3.3,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.28,
+   "redirected_orders_month": 1,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 24,
+   "store_orders_month": 11,
+   "catchment_customers": 5851,
+   "potential_orders_month": 258,
+   "incremental_orders_month": 81,
+   "cannibalised_orders_month": 177,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 102,
+     "salesLakhPerMonth": 2.61
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 75,
+     "salesLakhPerMonth": 1.91
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 43,
+   "est_sales_lakh_month": 6.6,
+   "est_profit_lakh_month": 0.41,
+   "payback_months": 85.4,
+   "annual_roi_pct": 14,
+   "verdict": "Below payback target",
+   "opportunity_index": 35
+  },
+  {
+   "pin": "560085",
+   "name": "Banashankari III Stage",
+   "zone": "inner",
+   "lat": 12.93066,
+   "lng": 77.5439,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 7.85,
+   "missed_orders_month": 49,
+   "missed_sales_lakh_month": 1.25,
+   "redirected_orders_month": 15,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 8
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 8
+    }
+   ],
+   "online_orders_month": 74,
+   "store_orders_month": 15,
+   "catchment_customers": 7869,
+   "potential_orders_month": 416,
+   "incremental_orders_month": 220,
+   "cannibalised_orders_month": 196,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 116,
+     "salesLakhPerMonth": 2.95
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 78,
+     "salesLakhPerMonth": 1.99
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.08
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 69,
+   "est_sales_lakh_month": 10.64,
+   "est_profit_lakh_month": 1.82,
+   "payback_months": 19.2,
+   "annual_roi_pct": 62.6,
+   "verdict": "Viable",
+   "opportunity_index": 95
+  },
+  {
+   "pin": "560086",
+   "name": "Mahalakshmipuram Layout",
+   "zone": "inner",
+   "lat": 13.00439,
+   "lng": 77.54124,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 6.3,
+   "missed_orders_month": 14,
+   "missed_sales_lakh_month": 0.37,
+   "redirected_orders_month": 6,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 23,
+   "store_orders_month": 6,
+   "catchment_customers": 9921,
+   "potential_orders_month": 422,
+   "incremental_orders_month": 201,
+   "cannibalised_orders_month": 221,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 214,
+     "salesLakhPerMonth": 5.48
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.14
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.01
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 70,
+   "est_sales_lakh_month": 10.78,
+   "est_profit_lakh_month": 1.87,
+   "payback_months": 18.7,
+   "annual_roi_pct": 64.2,
+   "verdict": "Viable",
+   "opportunity_index": 87
+  },
+  {
+   "pin": "560087",
+   "name": "Vartur",
+   "zone": "outer",
+   "lat": 12.93235,
+   "lng": 77.75924,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 4.63,
+   "missed_orders_month": 50,
+   "missed_sales_lakh_month": 1.27,
+   "redirected_orders_month": 24,
+   "redirected_to": [
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 19
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 78,
+   "store_orders_month": 33,
+   "catchment_customers": 1542,
+   "potential_orders_month": 72,
+   "incremental_orders_month": 27,
+   "cannibalised_orders_month": 45,
+   "cannibalised_from": [
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 39,
+     "salesLakhPerMonth": 0.99
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.15
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 12,
+   "est_sales_lakh_month": 1.84,
+   "est_profit_lakh_month": -1.26,
+   "payback_months": null,
+   "annual_roi_pct": -43.1,
+   "verdict": "Below payback target",
+   "opportunity_index": 12
+  },
+  {
+   "pin": "560088",
+   "name": "Hessarghatta",
+   "zone": "outer",
+   "lat": 13.15303,
+   "lng": 77.47215,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 23.23,
+   "missed_orders_month": 9,
+   "missed_sales_lakh_month": 0.23,
+   "redirected_orders_month": 0,
+   "redirected_to": [],
+   "online_orders_month": 13,
+   "store_orders_month": 0,
+   "catchment_customers": 1560,
+   "potential_orders_month": 36,
+   "incremental_orders_month": 25,
+   "cannibalised_orders_month": 11,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 10,
+     "salesLakhPerMonth": 0.26
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 6,
+   "est_sales_lakh_month": 0.91,
+   "est_profit_lakh_month": -1.58,
+   "payback_months": null,
+   "annual_roi_pct": -54.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 11
+  },
+  {
+   "pin": "560089",
+   "name": "Hessarghatta Lake",
+   "zone": "outer",
+   "lat": 13.14751,
+   "lng": 77.50745,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 20.73,
+   "missed_orders_month": 8,
+   "missed_sales_lakh_month": 0.2,
+   "redirected_orders_month": 0,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 11,
+   "store_orders_month": 0,
+   "catchment_customers": 2115,
+   "potential_orders_month": 53,
+   "incremental_orders_month": 36,
+   "cannibalised_orders_month": 17,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 16,
+     "salesLakhPerMonth": 0.4
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.03
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 9,
+   "est_sales_lakh_month": 1.36,
+   "est_profit_lakh_month": -1.42,
+   "payback_months": null,
+   "annual_roi_pct": -48.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560090",
+   "name": "Chikkabanavara",
+   "zone": "outer",
+   "lat": 13.09261,
+   "lng": 77.50406,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 15.77,
+   "missed_orders_month": 28,
+   "missed_sales_lakh_month": 0.7,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 39,
+   "store_orders_month": 2,
+   "catchment_customers": 3515,
+   "potential_orders_month": 129,
+   "incremental_orders_month": 92,
+   "cannibalised_orders_month": 37,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 35,
+     "salesLakhPerMonth": 0.91
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.04
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 21,
+   "est_sales_lakh_month": 3.29,
+   "est_profit_lakh_month": -0.75,
+   "payback_months": null,
+   "annual_roi_pct": -25.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 40
+  },
+  {
+   "pin": "560091",
+   "name": "Viswaneedam",
+   "zone": "inner",
+   "lat": 12.98999,
+   "lng": 77.48671,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 11.71,
+   "missed_orders_month": 60,
+   "missed_sales_lakh_month": 1.54,
+   "redirected_orders_month": 6,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 89,
+   "store_orders_month": 6,
+   "catchment_customers": 6337,
+   "potential_orders_month": 234,
+   "incremental_orders_month": 135,
+   "cannibalised_orders_month": 99,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 88,
+     "salesLakhPerMonth": 2.25
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.28
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 39,
+   "est_sales_lakh_month": 5.98,
+   "est_profit_lakh_month": 0.19,
+   "payback_months": 180.1,
+   "annual_roi_pct": 6.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 58
+  },
+  {
+   "pin": "560092",
+   "name": "Sahakaranagar",
+   "zone": "inner",
+   "lat": 13.05991,
+   "lng": 77.59007,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 8.74,
+   "missed_orders_month": 59,
+   "missed_sales_lakh_month": 1.51,
+   "redirected_orders_month": 11,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 8
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 90,
+   "store_orders_month": 11,
+   "catchment_customers": 6011,
+   "potential_orders_month": 295,
+   "incremental_orders_month": 176,
+   "cannibalised_orders_month": 118,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 96,
+     "salesLakhPerMonth": 2.45
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 23,
+     "salesLakhPerMonth": 0.58
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 49,
+   "est_sales_lakh_month": 7.53,
+   "est_profit_lakh_month": 0.73,
+   "payback_months": 47.6,
+   "annual_roi_pct": 25.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 76
+  },
+  {
+   "pin": "560093",
+   "name": "C V Raman Nagar",
+   "zone": "inner",
+   "lat": 12.98446,
+   "lng": 77.66773,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 2.51,
+   "missed_orders_month": 19,
+   "missed_sales_lakh_month": 0.49,
+   "redirected_orders_month": 9,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 45,
+   "store_orders_month": 45,
+   "catchment_customers": 3951,
+   "potential_orders_month": 264,
+   "incremental_orders_month": 62,
+   "cannibalised_orders_month": 202,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 169,
+     "salesLakhPerMonth": 4.31
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 22,
+     "salesLakhPerMonth": 0.56
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.28
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 44,
+   "est_sales_lakh_month": 6.74,
+   "est_profit_lakh_month": 0.46,
+   "payback_months": 76.2,
+   "annual_roi_pct": 15.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 27
+  },
+  {
+   "pin": "560094",
+   "name": "R M V Extension II Stage",
+   "zone": "inner",
+   "lat": 13.03876,
+   "lng": 77.57421,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 6.74,
+   "missed_orders_month": 24,
+   "missed_sales_lakh_month": 0.61,
+   "redirected_orders_month": 11,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 10
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 36,
+   "store_orders_month": 11,
+   "catchment_customers": 7695,
+   "potential_orders_month": 356,
+   "incremental_orders_month": 190,
+   "cannibalised_orders_month": 166,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 150,
+     "salesLakhPerMonth": 3.84
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 16,
+     "salesLakhPerMonth": 0.41
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 59,
+   "est_sales_lakh_month": 9.09,
+   "est_profit_lakh_month": 1.28,
+   "payback_months": 27.3,
+   "annual_roi_pct": 44,
+   "verdict": "Viable",
+   "opportunity_index": 82
+  },
+  {
+   "pin": "560095",
+   "name": "Koramangala VI Bk",
+   "zone": "inner",
+   "lat": 12.93794,
+   "lng": 77.61938,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 1.7,
+   "missed_orders_month": 7,
+   "missed_sales_lakh_month": 0.18,
+   "redirected_orders_month": 7,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 23,
+   "store_orders_month": 30,
+   "catchment_customers": 2643,
+   "potential_orders_month": 201,
+   "incremental_orders_month": 36,
+   "cannibalised_orders_month": 165,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 119,
+     "salesLakhPerMonth": 3.04
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 30,
+     "salesLakhPerMonth": 0.75
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.28
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 6,
+     "salesLakhPerMonth": 0.14
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 34,
+   "est_sales_lakh_month": 5.15,
+   "est_profit_lakh_month": -0.1,
+   "payback_months": null,
+   "annual_roi_pct": -3.4,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560096",
+   "name": "Nandinilayout",
+   "zone": "inner",
+   "lat": 13.01438,
+   "lng": 77.53452,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 7.45,
+   "missed_orders_month": 15,
+   "missed_sales_lakh_month": 0.38,
+   "redirected_orders_month": 5,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 22,
+   "store_orders_month": 5,
+   "catchment_customers": 9063,
+   "potential_orders_month": 375,
+   "incremental_orders_month": 188,
+   "cannibalised_orders_month": 187,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 184,
+     "salesLakhPerMonth": 4.7
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.06
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.03
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 63,
+   "est_sales_lakh_month": 9.59,
+   "est_profit_lakh_month": 1.46,
+   "payback_months": 24,
+   "annual_roi_pct": 50,
+   "verdict": "Viable",
+   "opportunity_index": 81
+  },
+  {
+   "pin": "560097",
+   "name": "Vidyaranyapura",
+   "zone": "outer",
+   "lat": 13.08455,
+   "lng": 77.54938,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 12.46,
+   "missed_orders_month": 31,
+   "missed_sales_lakh_month": 0.79,
+   "redirected_orders_month": 3,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 44,
+   "store_orders_month": 3,
+   "catchment_customers": 4896,
+   "potential_orders_month": 200,
+   "incremental_orders_month": 128,
+   "cannibalised_orders_month": 72,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 67,
+     "salesLakhPerMonth": 1.71
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 5,
+     "salesLakhPerMonth": 0.14
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 33,
+   "est_sales_lakh_month": 5.11,
+   "est_profit_lakh_month": -0.11,
+   "payback_months": null,
+   "annual_roi_pct": -3.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 55
+  },
+  {
+   "pin": "560098",
+   "name": "Rajarajeshwarinagar",
+   "zone": "inner",
+   "lat": 12.915,
+   "lng": 77.51915,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 9.4,
+   "missed_orders_month": 69,
+   "missed_sales_lakh_month": 1.76,
+   "redirected_orders_month": 11,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 9
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 104,
+   "store_orders_month": 11,
+   "catchment_customers": 6364,
+   "potential_orders_month": 331,
+   "incremental_orders_month": 198,
+   "cannibalised_orders_month": 132,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 66,
+     "salesLakhPerMonth": 1.69
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 66,
+     "salesLakhPerMonth": 1.68
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 55,
+   "est_sales_lakh_month": 8.45,
+   "est_profit_lakh_month": 1.06,
+   "payback_months": 33.1,
+   "annual_roi_pct": 36.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 86
+  },
+  {
+   "pin": "560099",
+   "name": "Bommasandra Industrial Estate",
+   "zone": "outer",
+   "lat": 12.84163,
+   "lng": 77.70601,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 12.46,
+   "missed_orders_month": 12,
+   "missed_sales_lakh_month": 0.32,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 18,
+   "store_orders_month": 2,
+   "catchment_customers": 1404,
+   "potential_orders_month": 64,
+   "incremental_orders_month": 37,
+   "cannibalised_orders_month": 26,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 13,
+     "salesLakhPerMonth": 0.34
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 9,
+     "salesLakhPerMonth": 0.23
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 4,
+     "salesLakhPerMonth": 0.1
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 11,
+   "est_sales_lakh_month": 1.63,
+   "est_profit_lakh_month": -1.33,
+   "payback_months": null,
+   "annual_roi_pct": -45.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560100",
+   "name": "Electronics City",
+   "zone": "outer",
+   "lat": 12.85101,
+   "lng": 77.6649,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 8.01,
+   "missed_orders_month": 64,
+   "missed_sales_lakh_month": 1.64,
+   "redirected_orders_month": 19,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 16
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 3
+    }
+   ],
+   "online_orders_month": 96,
+   "store_orders_month": 19,
+   "catchment_customers": 2193,
+   "potential_orders_month": 120,
+   "incremental_orders_month": 63,
+   "cannibalised_orders_month": 57,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 29,
+     "salesLakhPerMonth": 0.73
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 26,
+     "salesLakhPerMonth": 0.67
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 3,
+     "salesLakhPerMonth": 0.07
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 20,
+   "est_sales_lakh_month": 3.08,
+   "est_profit_lakh_month": -0.82,
+   "payback_months": null,
+   "annual_roi_pct": -28.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 27
+  },
+  {
+   "pin": "560102",
+   "name": "HSR Layout",
+   "zone": "inner",
+   "lat": 12.91142,
+   "lng": 77.65408,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 3.14,
+   "missed_orders_month": 37,
+   "missed_sales_lakh_month": 0.94,
+   "redirected_orders_month": 15,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 9
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 6
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 74,
+   "store_orders_month": 51,
+   "catchment_customers": 4134,
+   "potential_orders_month": 252,
+   "incremental_orders_month": 81,
+   "cannibalised_orders_month": 171,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 130,
+     "salesLakhPerMonth": 3.32
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 24,
+     "salesLakhPerMonth": 0.6
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 13,
+     "salesLakhPerMonth": 0.33
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 5,
+     "salesLakhPerMonth": 0.14
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 42,
+   "est_sales_lakh_month": 6.45,
+   "est_profit_lakh_month": 0.36,
+   "payback_months": 97.7,
+   "annual_roi_pct": 12.3,
+   "verdict": "Below payback target",
+   "opportunity_index": 35
+  },
+  {
+   "pin": "560103",
+   "name": "Bellandur",
+   "zone": "inner",
+   "lat": 12.92999,
+   "lng": 77.68724,
+   "nearest_store_id": "ST-02",
+   "nearest_store_km": 6.3,
+   "missed_orders_month": 53,
+   "missed_sales_lakh_month": 1.36,
+   "redirected_orders_month": 25,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 13
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 10
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 86,
+   "store_orders_month": 25,
+   "catchment_customers": 3542,
+   "potential_orders_month": 235,
+   "incremental_orders_month": 105,
+   "cannibalised_orders_month": 131,
+   "cannibalised_from": [
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 71,
+     "salesLakhPerMonth": 1.82
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 33,
+     "salesLakhPerMonth": 0.84
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 23,
+     "salesLakhPerMonth": 0.58
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 4,
+     "salesLakhPerMonth": 0.1
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 39,
+   "est_sales_lakh_month": 6.01,
+   "est_profit_lakh_month": 0.21,
+   "payback_months": 170.7,
+   "annual_roi_pct": 7,
+   "verdict": "Below payback target",
+   "opportunity_index": 45
+  },
+  {
+   "pin": "560104",
+   "name": "Hampinagar",
+   "zone": "inner",
+   "lat": 12.96248,
+   "lng": 77.53826,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 6.44,
+   "missed_orders_month": 10,
+   "missed_sales_lakh_month": 0.27,
+   "redirected_orders_month": 7,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 6
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 14,
+   "store_orders_month": 7,
+   "catchment_customers": 9604,
+   "potential_orders_month": 456,
+   "incremental_orders_month": 230,
+   "cannibalised_orders_month": 226,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 183,
+     "salesLakhPerMonth": 4.67
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 43,
+     "salesLakhPerMonth": 1.1
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 76,
+   "est_sales_lakh_month": 11.64,
+   "est_profit_lakh_month": 2.17,
+   "payback_months": 16.1,
+   "annual_roi_pct": 74.5,
+   "verdict": "Viable",
+   "opportunity_index": 100
+  },
+  {
+   "pin": "560105",
+   "name": "Jigani",
+   "zone": "outer",
+   "lat": 12.79038,
+   "lng": 77.64698,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 11.86,
+   "missed_orders_month": 13,
+   "missed_sales_lakh_month": 0.33,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 18,
+   "store_orders_month": 2,
+   "catchment_customers": 821,
+   "potential_orders_month": 28,
+   "incremental_orders_month": 17,
+   "cannibalised_orders_month": 11,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 11,
+     "salesLakhPerMonth": 0.27
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 5,
+   "est_sales_lakh_month": 0.71,
+   "est_profit_lakh_month": -1.65,
+   "payback_months": null,
+   "annual_roi_pct": -56.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 7
+  },
+  {
+   "pin": "560107",
+   "name": "Achitnagar",
+   "zone": "outer",
+   "lat": 13.08697,
+   "lng": 77.48307,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 16.83,
+   "missed_orders_month": 9,
+   "missed_sales_lakh_month": 0.23,
+   "redirected_orders_month": 0,
+   "redirected_to": [],
+   "online_orders_month": 13,
+   "store_orders_month": 0,
+   "catchment_customers": 3331,
+   "potential_orders_month": 108,
+   "incremental_orders_month": 76,
+   "cannibalised_orders_month": 32,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 31,
+     "salesLakhPerMonth": 0.8
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 18,
+   "est_sales_lakh_month": 2.77,
+   "est_profit_lakh_month": -0.93,
+   "payback_months": null,
+   "annual_roi_pct": -31.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 33
+  },
+  {
+   "pin": "560108",
+   "name": "Anjanapura",
+   "zone": "outer",
+   "lat": 12.85299,
+   "lng": 77.55976,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 5.87,
+   "missed_orders_month": 18,
+   "missed_sales_lakh_month": 0.47,
+   "redirected_orders_month": 9,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 8
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 29,
+   "store_orders_month": 9,
+   "catchment_customers": 3189,
+   "potential_orders_month": 113,
+   "incremental_orders_month": 42,
+   "cannibalised_orders_month": 71,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 68,
+     "salesLakhPerMonth": 1.75
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.06
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 19,
+   "est_sales_lakh_month": 2.89,
+   "est_profit_lakh_month": -0.89,
+   "payback_months": null,
+   "annual_roi_pct": -30.5,
+   "verdict": "Below payback target",
+   "opportunity_index": 18
+  },
+  {
+   "pin": "560109",
+   "name": "Thalaghattapura",
+   "zone": "outer",
+   "lat": 12.86464,
+   "lng": 77.52615,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 8.49,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.27,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 16,
+   "store_orders_month": 2,
+   "catchment_customers": 4029,
+   "potential_orders_month": 150,
+   "incremental_orders_month": 70,
+   "cannibalised_orders_month": 80,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 68,
+     "salesLakhPerMonth": 1.73
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 12,
+     "salesLakhPerMonth": 0.31
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 25,
+   "est_sales_lakh_month": 3.83,
+   "est_profit_lakh_month": -0.56,
+   "payback_months": null,
+   "annual_roi_pct": -19.2,
+   "verdict": "Below payback target",
+   "opportunity_index": 30
+  },
+  {
+   "pin": "560110",
+   "name": "Ullalu Upanagar",
+   "zone": "outer",
+   "lat": 12.95039,
+   "lng": 77.47854,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 13.02,
+   "missed_orders_month": 4,
+   "missed_sales_lakh_month": 0.11,
+   "redirected_orders_month": 0,
+   "redirected_to": [],
+   "online_orders_month": 7,
+   "store_orders_month": 0,
+   "catchment_customers": 5428,
+   "potential_orders_month": 215,
+   "incremental_orders_month": 130,
+   "cannibalised_orders_month": 85,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 61,
+     "salesLakhPerMonth": 1.56
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 24,
+     "salesLakhPerMonth": 0.62
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 36,
+   "est_sales_lakh_month": 5.5,
+   "est_profit_lakh_month": 0.02,
+   "payback_months": 1415,
+   "annual_roi_pct": 0.8,
+   "verdict": "Below payback target",
+   "opportunity_index": 56
+  },
+  {
+   "pin": "560111",
+   "name": "Kumaraswamy Layout",
+   "zone": "inner",
+   "lat": 12.90155,
+   "lng": 77.56307,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 4.41,
+   "missed_orders_month": 16,
+   "missed_sales_lakh_month": 0.41,
+   "redirected_orders_month": 12,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 7
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 24,
+   "store_orders_month": 16,
+   "catchment_customers": 7250,
+   "potential_orders_month": 357,
+   "incremental_orders_month": 145,
+   "cannibalised_orders_month": 212,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 151,
+     "salesLakhPerMonth": 3.85
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 54,
+     "salesLakhPerMonth": 1.39
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 7,
+     "salesLakhPerMonth": 0.18
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 60,
+   "est_sales_lakh_month": 9.13,
+   "est_profit_lakh_month": 1.29,
+   "payback_months": 27,
+   "annual_roi_pct": 44.4,
+   "verdict": "Viable",
+   "opportunity_index": 63
+  },
+  {
+   "pin": "560112",
+   "name": "Kodigehalli",
+   "zone": "outer",
+   "lat": 12.97373,
+   "lng": 77.45693,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 14.92,
+   "missed_orders_month": 28,
+   "missed_sales_lakh_month": 0.7,
+   "redirected_orders_month": 1,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 0
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 40,
+   "store_orders_month": 1,
+   "catchment_customers": 4313,
+   "potential_orders_month": 145,
+   "incremental_orders_month": 93,
+   "cannibalised_orders_month": 52,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 42,
+     "salesLakhPerMonth": 1.06
+    },
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 10,
+     "salesLakhPerMonth": 0.27
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 24,
+   "est_sales_lakh_month": 3.71,
+   "est_profit_lakh_month": -0.6,
+   "payback_months": null,
+   "annual_roi_pct": -20.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 40
+  },
+  {
+   "pin": "560113",
+   "name": "Horamavu",
+   "zone": "inner",
+   "lat": 13.03723,
+   "lng": 77.66237,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 5.7,
+   "missed_orders_month": 56,
+   "missed_sales_lakh_month": 1.44,
+   "redirected_orders_month": 24,
+   "redirected_to": [
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 18
+    },
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 4
+    },
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 2
+    }
+   ],
+   "online_orders_month": 90,
+   "store_orders_month": 27,
+   "catchment_customers": 4355,
+   "potential_orders_month": 225,
+   "incremental_orders_month": 99,
+   "cannibalised_orders_month": 126,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 103,
+     "salesLakhPerMonth": 2.64
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.47
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 4,
+     "salesLakhPerMonth": 0.1
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 38,
+   "est_sales_lakh_month": 5.75,
+   "est_profit_lakh_month": 0.11,
+   "payback_months": 307.8,
+   "annual_roi_pct": 3.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 43
+  },
+  {
+   "pin": "560114",
+   "name": "Begur",
+   "zone": "outer",
+   "lat": 12.8736,
+   "lng": 77.62681,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 3.18,
+   "missed_orders_month": 28,
+   "missed_sales_lakh_month": 0.71,
+   "redirected_orders_month": 11,
+   "redirected_to": [
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 7
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 5
+    }
+   ],
+   "online_orders_month": 51,
+   "store_orders_month": 41,
+   "catchment_customers": 2620,
+   "potential_orders_month": 145,
+   "incremental_orders_month": 49,
+   "cannibalised_orders_month": 96,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 62,
+     "salesLakhPerMonth": 1.57
+    },
+    {
+     "store": "ST-02",
+     "area": "Koramangala",
+     "ordersPerMonth": 34,
+     "salesLakhPerMonth": 0.86
+    },
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.01
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 24,
+   "est_sales_lakh_month": 3.7,
+   "est_profit_lakh_month": -0.6,
+   "payback_months": null,
+   "annual_roi_pct": -20.7,
+   "verdict": "Below payback target",
+   "opportunity_index": 21
+  },
+  {
+   "pin": "560115",
+   "name": "Kannamangala",
+   "zone": "outer",
+   "lat": 13.02531,
+   "lng": 77.76427,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 6.5,
+   "missed_orders_month": 4,
+   "missed_sales_lakh_month": 0.11,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 2
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 6,
+   "store_orders_month": 2,
+   "catchment_customers": 647,
+   "potential_orders_month": 34,
+   "incremental_orders_month": 12,
+   "cannibalised_orders_month": 21,
+   "cannibalised_from": [
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 19,
+     "salesLakhPerMonth": 0.5
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.05
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 6,
+   "est_sales_lakh_month": 0.86,
+   "est_profit_lakh_month": -1.6,
+   "payback_months": null,
+   "annual_roi_pct": -54.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 5
+  },
+  {
+   "pin": "560116",
+   "name": "Kaggalipura P.O",
+   "zone": "outer",
+   "lat": 12.78236,
+   "lng": 77.50426,
+   "nearest_store_id": "ST-05",
+   "nearest_store_km": 15.68,
+   "missed_orders_month": 12,
+   "missed_sales_lakh_month": 0.32,
+   "redirected_orders_month": 2,
+   "redirected_to": [
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-05",
+     "ordersPerMonth": 1
+    }
+   ],
+   "online_orders_month": 17,
+   "store_orders_month": 2,
+   "catchment_customers": 606,
+   "potential_orders_month": 18,
+   "incremental_orders_month": 13,
+   "cannibalised_orders_month": 5,
+   "cannibalised_from": [
+    {
+     "store": "ST-05",
+     "area": "Bannerghatta Road",
+     "ordersPerMonth": 5,
+     "salesLakhPerMonth": 0.13
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 3,
+   "est_sales_lakh_month": 0.46,
+   "est_profit_lakh_month": -1.74,
+   "payback_months": null,
+   "annual_roi_pct": -59.6,
+   "verdict": "Below payback target",
+   "opportunity_index": 6
+  },
+  {
+   "pin": "560117",
+   "name": "Doddadunnasandra",
+   "zone": "outer",
+   "lat": 12.95782,
+   "lng": 77.82866,
+   "nearest_store_id": "ST-04",
+   "nearest_store_km": 9.43,
+   "missed_orders_month": 11,
+   "missed_sales_lakh_month": 0.29,
+   "redirected_orders_month": 4,
+   "redirected_to": [
+    {
+     "store": "ST-04",
+     "ordersPerMonth": 3
+    },
+    {
+     "store": "ST-03",
+     "ordersPerMonth": 1
+    },
+    {
+     "store": "ST-02",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 15,
+   "store_orders_month": 4,
+   "catchment_customers": 363,
+   "potential_orders_month": 20,
+   "incremental_orders_month": 11,
+   "cannibalised_orders_month": 10,
+   "cannibalised_from": [
+    {
+     "store": "ST-04",
+     "area": "Whitefield",
+     "ordersPerMonth": 10,
+     "salesLakhPerMonth": 0.24
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 3,
+   "est_sales_lakh_month": 0.51,
+   "est_profit_lakh_month": -1.72,
+   "payback_months": null,
+   "annual_roi_pct": -59,
+   "verdict": "Below payback target",
+   "opportunity_index": 5
+  },
+  {
+   "pin": "560119",
+   "name": "Singanayakanahalli",
+   "zone": "outer",
+   "lat": 13.15435,
+   "lng": 77.55882,
+   "nearest_store_id": "ST-01",
+   "nearest_store_km": 19.61,
+   "missed_orders_month": 13,
+   "missed_sales_lakh_month": 0.33,
+   "redirected_orders_month": 0,
+   "redirected_to": [
+    {
+     "store": "ST-01",
+     "ordersPerMonth": 0
+    }
+   ],
+   "online_orders_month": 18,
+   "store_orders_month": 0,
+   "catchment_customers": 2051,
+   "potential_orders_month": 53,
+   "incremental_orders_month": 37,
+   "cannibalised_orders_month": 16,
+   "cannibalised_from": [
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 14,
+     "salesLakhPerMonth": 0.36
+    },
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.06
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 9,
+   "est_sales_lakh_month": 1.36,
+   "est_profit_lakh_month": -1.43,
+   "payback_months": null,
+   "annual_roi_pct": -48.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 16
+  },
+  {
+   "pin": "560300",
+   "name": "Kempegowda International Airport",
+   "zone": "outer",
+   "lat": 13.19863,
+   "lng": 77.70712,
+   "nearest_store_id": "ST-03",
+   "nearest_store_km": 24.28,
+   "missed_orders_month": 1,
+   "missed_sales_lakh_month": 0.01,
+   "redirected_orders_month": 0,
+   "redirected_to": [],
+   "online_orders_month": 1,
+   "store_orders_month": 0,
+   "catchment_customers": 441,
+   "potential_orders_month": 4,
+   "incremental_orders_month": 2,
+   "cannibalised_orders_month": 2,
+   "cannibalised_from": [
+    {
+     "store": "ST-03",
+     "area": "Indiranagar",
+     "ordersPerMonth": 2,
+     "salesLakhPerMonth": 0.04
+    },
+    {
+     "store": "ST-01",
+     "area": "Bengaluru",
+     "ordersPerMonth": 1,
+     "salesLakhPerMonth": 0.02
+    }
+   ],
+   "capacity_orders_month": 600,
+   "capacity_use_pct": 1,
+   "est_sales_lakh_month": 0.1,
+   "est_profit_lakh_month": -1.86,
+   "payback_months": null,
+   "annual_roi_pct": -63.9,
+   "verdict": "Below payback target",
+   "opportunity_index": 1
+  }
+ ]
+}

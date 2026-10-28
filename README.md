@@ -20,7 +20,7 @@ Franchise partner acquisition, geo-selection and onboarding engine (AI x Ops Hac
 | Home | Welcome and Google-style search (people, pins, cities, territories or a question), enquiry form scored live, every applicant as an animated dot, funnel, today's actions, rules panel with presets and a "who changed" list, insights |
 | To-do | Suggested yes / Keep warm / Suggested no, awaiting-you filter, bulk accept, clickable filters, side drawer with one-click messages in the applicant's language |
 | Territories | Spots, winners, waitlists, empty pins, co-investor pairs |
-| Map | 3D map of India (MapLibre + OpenFreeMap, no key) with store towers, catchment rings and a demand heat layer, plus a Google Maps panel that follows your clicks |
+| Map | 3D map of India (MapLibre + OpenFreeMap, no key) with store towers, catchment rings and a demand heat layer, plus a Google Maps panel that follows your clicks; an **Orders heatmap** for Bengaluru (today's traffic, leaks and a new-store simulation from simulated order data in `data/`) |
 | Openings | Drag-and-drop onboarding board |
 | Ask | Rules-only assistant: explains decisions, does the maths, compares people, runs "what if" without saving, navigates, and keeps notes |
 | Rules | Every rule, weight and cost assumption |

@@ -1,0 +1,292 @@
+[
+ {
+  "store_id": "ST-01",
+  "pin": "560001",
+  "area": "Bengaluru",
+  "lat": 12.9814,
+  "lng": 77.59439,
+  "opened": 2019,
+  "store_orders": 2344,
+  "walkin_orders": 1702,
+  "pickup_orders": 642,
+  "revenue_inr": 5960674,
+  "avg_customer_km": 4.94,
+  "p80_customer_km": 7.17,
+  "max_customer_km": 18.27,
+  "pins_served": 72,
+  "top_source_pins": [
+   {
+    "pin": "560001",
+    "name": "Bengaluru",
+    "orders": 149
+   },
+   {
+    "pin": "560003",
+    "name": "Malleswaram",
+    "orders": 101
+   },
+   {
+    "pin": "560004",
+    "name": "Basavanagudi",
+    "orders": 97
+   },
+   {
+    "pin": "560032",
+    "name": "R T Nagar",
+    "orders": 92
+   },
+   {
+    "pin": "560079",
+    "name": "Basaveshwaranagar",
+    "orders": 84
+   },
+   {
+    "pin": "560006",
+    "name": "J C Nagar",
+    "orders": 80
+   },
+   {
+    "pin": "560025",
+    "name": "Museum Road",
+    "orders": 78
+   },
+   {
+    "pin": "560010",
+    "name": "Rajajinagar",
+    "orders": 74
+   }
+  ]
+ },
+ {
+  "store_id": "ST-02",
+  "pin": "560034",
+  "area": "Koramangala",
+  "lat": 12.92608,
+  "lng": 77.62927,
+  "opened": 2020,
+  "store_orders": 1744,
+  "walkin_orders": 1365,
+  "pickup_orders": 379,
+  "revenue_inr": 4399854,
+  "avg_customer_km": 3.89,
+  "p80_customer_km": 5.64,
+  "max_customer_km": 21.34,
+  "pins_served": 51,
+  "top_source_pins": [
+   {
+    "pin": "560102",
+    "name": "HSR Layout",
+    "orders": 212
+   },
+   {
+    "pin": "560034",
+    "name": "Koramangala",
+    "orders": 206
+   },
+   {
+    "pin": "560068",
+    "name": "Bommanahalli",
+    "orders": 160
+   },
+   {
+    "pin": "560095",
+    "name": "Koramangala VI Bk",
+    "orders": 121
+   },
+   {
+    "pin": "560007",
+    "name": "Agram",
+    "orders": 106
+   },
+   {
+    "pin": "560076",
+    "name": "Bannerghatta Road",
+    "orders": 93
+   },
+   {
+    "pin": "560011",
+    "name": "Jayangar III Block",
+    "orders": 69
+   },
+   {
+    "pin": "560030",
+    "name": "Adugodi",
+    "orders": 66
+   }
+  ]
+ },
+ {
+  "store_id": "ST-03",
+  "pin": "560038",
+  "area": "Indiranagar",
+  "lat": 12.98882,
+  "lng": 77.64502,
+  "opened": 2021,
+  "store_orders": 1947,
+  "walkin_orders": 1496,
+  "pickup_orders": 451,
+  "revenue_inr": 4937177,
+  "avg_customer_km": 4.42,
+  "p80_customer_km": 6.45,
+  "max_customer_km": 23.26,
+  "pins_served": 63,
+  "top_source_pins": [
+   {
+    "pin": "560038",
+    "name": "Indiranagar",
+    "orders": 186
+   },
+   {
+    "pin": "560093",
+    "name": "C V Raman Nagar",
+    "orders": 172
+   },
+   {
+    "pin": "560016",
+    "name": "Doorvaninagar",
+    "orders": 148
+   },
+   {
+    "pin": "560008",
+    "name": "H A L II Stage",
+    "orders": 140
+   },
+   {
+    "pin": "560043",
+    "name": "Kalyananagar",
+    "orders": 135
+   },
+   {
+    "pin": "560017",
+    "name": "Vimanapura",
+    "orders": 130
+   },
+   {
+    "pin": "560033",
+    "name": "Maruthi Sevanagar",
+    "orders": 106
+   },
+   {
+    "pin": "560113",
+    "name": "Horamavu",
+    "orders": 102
+   }
+  ]
+ },
+ {
+  "store_id": "ST-04",
+  "pin": "560066",
+  "area": "Whitefield",
+  "lat": 12.97077,
+  "lng": 77.74266,
+  "opened": 2022,
+  "store_orders": 832,
+  "walkin_orders": 624,
+  "pickup_orders": 208,
+  "revenue_inr": 2130949,
+  "avg_customer_km": 4.29,
+  "p80_customer_km": 6.44,
+  "max_customer_km": 14.81,
+  "pins_served": 16,
+  "top_source_pins": [
+   {
+    "pin": "560066",
+    "name": "Whitefield",
+    "orders": 248
+   },
+   {
+    "pin": "560087",
+    "name": "Vartur",
+    "orders": 125
+   },
+   {
+    "pin": "560037",
+    "name": "Marathahalli Colony",
+    "orders": 106
+   },
+   {
+    "pin": "560067",
+    "name": "Kadugodi",
+    "orders": 93
+   },
+   {
+    "pin": "560048",
+    "name": "Mahadevapura",
+    "orders": 91
+   },
+   {
+    "pin": "560103",
+    "name": "Bellandur",
+    "orders": 38
+   },
+   {
+    "pin": "560035",
+    "name": "Carmelram",
+    "orders": 31
+   },
+   {
+    "pin": "560036",
+    "name": "Krishnarajapuram",
+    "orders": 31
+   }
+  ]
+ },
+ {
+  "store_id": "ST-05",
+  "pin": "560076",
+  "area": "Bannerghatta Road",
+  "lat": 12.88716,
+  "lng": 77.601,
+  "opened": 2023,
+  "store_orders": 1492,
+  "walkin_orders": 1105,
+  "pickup_orders": 387,
+  "revenue_inr": 3802339,
+  "avg_customer_km": 4.33,
+  "p80_customer_km": 6.25,
+  "max_customer_km": 19.67,
+  "pins_served": 37,
+  "top_source_pins": [
+   {
+    "pin": "560076",
+    "name": "Bannerghatta Road",
+    "orders": 314
+   },
+   {
+    "pin": "560078",
+    "name": "J P Nagar",
+    "orders": 241
+   },
+   {
+    "pin": "560114",
+    "name": "Begur",
+    "orders": 166
+   },
+   {
+    "pin": "560061",
+    "name": "Subramanyapura",
+    "orders": 96
+   },
+   {
+    "pin": "560041",
+    "name": "Jayanagar",
+    "orders": 76
+   },
+   {
+    "pin": "560062",
+    "name": "Doddakallasandra",
+    "orders": 73
+   },
+   {
+    "pin": "560068",
+    "name": "Bommanahalli",
+    "orders": 71
+   },
+   {
+    "pin": "560100",
+    "name": "Electronics City",
+    "orders": 60
+   }
+  ]
+ }
+]

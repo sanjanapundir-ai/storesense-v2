@@ -923,3 +923,39 @@ dd.pins a.lnk.pin:hover { background: color-mix(in srgb, var(--accent) 22%, tran
   body.assist-open .toast { left: calc((100vw - var(--as-w)) / 2); }
 }
 .as-b > [hidden] { display: none !important; }
+
+/* Orders heatmap (js/orders-map.js): Bengaluru traffic, leaks and new-store simulation */
+#orders-map { position: absolute; inset: 0; }
+#orders-map .om-map { position: absolute; inset: 0; }
+.om-legend { position: absolute; left: 12px; bottom: 12px; z-index: 2; background: rgba(255,255,255,.95); color: #111827; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.7; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 260px; }
+.om-legend > div { display: flex; align-items: center; gap: 7px; }
+.om-ramp { display: inline-flex; height: 8px; width: 110px; border-radius: 3px; overflow: hidden; }
+.om-ramp i { flex: 1; }
+.om-line { display: inline-block; width: 18px; height: 0; vertical-align: middle; }
+.om-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
+.om-store { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.om-ring { border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(17,24,39,.35); }
+.om-ring i { border-radius: 50%; background: #111827; border: 2px solid #fff; }
+.om-cap { margin-top: 2px; font: 600 11px Inter, system-ui, sans-serif; background: rgba(255,255,255,.94); padding: 1px 5px; border-radius: 4px; border: 1px solid #e5e7eb; white-space: nowrap; }
+.om-new { width: 30px; height: 30px; border-radius: 8px; background: #1d4ed8; color: #fff; border: 3px solid #fff; box-shadow: 0 0 0 2px #1d4ed8, 0 2px 6px rgba(17,24,39,.4); display: grid; place-items: center; font: 700 10px Inter, system-ui, sans-serif; }
+#orders-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.om-modes { width: 100%; }
+.om-intro { margin: 2px 0 0; }
+.om-card h2 { font-size: 16px; margin: 0; }
+.om-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+.om-h p { margin: 4px 0 0; }
+.om-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 14px; color: var(--text-2); }
+.om-row span:last-child { color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+.om-row.strong span:last-child { font-weight: 700; }
+.om-indent { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--line); }
+.om-item { display: flex; justify-content: space-between; gap: 10px; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--text); font: inherit; font-size: 14px; padding: 7px 4px; text-align: left; cursor: pointer; }
+.om-item:hover, .om-item.on { background: var(--accent-soft); }
+.om-item span:last-child { color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.om-heavy { color: #dc2626; font-size: 12px; }
+.om-sub { margin: 10px 0 2px; }
+.om-wide { width: 100%; margin-top: 12px; }
+.om-verdict { font-weight: 600; margin: 0 0 8px; }
+.om-src { margin: 0; }
+.home-leak { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.home-leak b.big { font-size: 22px; }
+@media (max-width: 700px) { .om-legend { font-size: 10.5px; line-height: 1.5; padding: 7px 9px; max-width: 200px; } .om-ramp { width: 70px; } .om-cap { font-size: 10px; } }
