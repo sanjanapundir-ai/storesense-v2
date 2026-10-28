@@ -1,6 +1,7 @@
 // app.js — the expansion team's operating screen. All decisions come from engine.js.
 import { parseWorkbook } from './parse.js';
 import { filesToSheets, ACCEPTED_FORMATS } from './ingest.js';
+import { buildAiContext } from './ai-context.js';
 import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES, siteInsight, TRAFFIC, trafficSummary, milestones as planMilestones } from './engine.js';
 import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
@@ -1151,9 +1152,42 @@ function sendAsk(q) {
 }
 const plainText = h => String(h).replace(/<(script|style)[\s\S]*?<\/\1>/g, '').replace(/<\/(p|li|h\d|tr|div)>/g, '\n').replace(/<[^>]+>/g, ' ').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{2,}/g, '\n').trim().replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 const botSay = (html, extra) => S.chat.push({ who: 'bot', html, t: new Date().toISOString(), ...extra });
+// AI help for open questions the rules can't match (api/ask.js). Off until the server has an API key.
+let aiOn = null;
+fetch('/api/ask', { signal: AbortSignal.timeout(6000) }).then(r => (r.ok ? r.json() : null)).then(j => { aiOn = !!j?.enabled; }).catch(() => { aiOn = false; });
+const aiHtml = t => {
+  const inline = x => esc(x).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const out = []; let list = [];
+  const flush = () => { if (list.length) out.push(`<ul>${list.map(i => `<li>${inline(i)}</li>`).join('')}</ul>`); list = []; };
+  for (const line of String(t).split(/\n+/)) {
+    const m = line.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)$/);
+    if (m) list.push(m[1]); else if (line.trim()) { flush(); out.push(`<p>${inline(line.trim())}</p>`); }
+  }
+  flush();
+  return out.join('');
+};
+async function answerWithAi(q, ruleOut) {
+  drawChat(true);
+  const history = S.chat.slice(1, -1).slice(-6).map(m => ({ role: m.who === 'me' ? 'user' : 'assistant', text: m.who === 'me' ? m.text : plainText(m.html).replace(/Worked out from .*$/s, '').slice(0, 1500) }));
+  try {
+    const r = await fetch('/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q, context: buildAiContext(S.result, S.data, S.decisions), history }), signal: AbortSignal.timeout(55000) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.answer) throw new Error(j.error || `AI error ${r.status}`);
+    botSay(`${aiHtml(j.answer)}<p class="src">AI answer written from your file's data${j.truncated ? ' (cut short)' : ''}. The rules make the suggestions; check the profile before acting.</p>`);
+    const first = plainText(aiHtml(j.answer)).replace(/\n/g, ' ').slice(0, 220);
+    addNote(q, first, '');
+    logActivity('question', q, `AI: ${first}`, 'ask');
+  } catch (e) {
+    if (/not switched on|not valid/.test(e.message)) aiOn = false;
+    botSay(ruleOut.html);
+    logActivity('question', q, ruleOut.unknown ? 'Not understood — nothing guessed' : plainText(ruleOut.html).slice(0, 220), 'ask');
+  }
+  saveConvos(); drawChat(); drawSuggestions(); refreshNotes();
+}
 function answerAsk(q) {
   const before = S.result;
   const out = ask(withContext(q), ctxNow());
+  if (aiOn && (out.unknown || out.weak) && !out.data && !out.settings && !out.nav) return answerWithAi(q, out);
   if (out.undo) {
     const prev = S.history.pop();
     if (prev) { S.data = prev.data; S.settings = prev.settings; S.result = run(S.data, S.settings); botSay(`<p>Undone: "${esc(prev.label)}".</p>`); afterChange(); logActivity('update', `Undo: ${prev.label}`, '', 'ask'); }

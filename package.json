@@ -1,1 +1,8 @@
-{ "name": "storesense", "private": true, "type": "module" }
+{
+  "name": "storesense",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.137.0"
+  }
+}

@@ -3,6 +3,7 @@
 // what changed. Rules suggest and people decide; this file only reads the question and writes answers.
 import { normFloor, parseLakh } from './parse.js';
 import { lakh, fmtDate, PART_LABEL, WEIGHTS, siteInsight, trafficSummary } from './engine.js';
+import { normalizeQuestion, answerMore } from './ask-more.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const r1 = n => Math.round(n * 10) / 10;
@@ -86,7 +87,9 @@ function settingEdits(q, settings) {
   const pb = s.match(/payback.*?(\d+)\s*months?|(\d+)\s*months?.*payback/);
   if (pb && /(target|max|limit|within|under|set)/.test(s)) { out.maxPayback = +(pb[1] || pb[2]); said.push(`payback target = ${out.maxPayback} months`); }
   const bar = s.match(/(?:bar|cut-?off|partner score).*?(\d{2})/);
-  if (bar && /(set|raise|lower|change|make)/.test(s)) { out.partnerBar = +bar[1]; said.push(`partner score bar = ${out.partnerBar}`); }
+  if (bar && /(set|raise|lower|change|make|what if|is)/.test(s)) { out.partnerBar = +bar[1]; said.push(`partner score bar = ${out.partnerBar}`); }
+  const km = s.match(/(\d+(\.\d+)?)\s*(km|kilomet)/);
+  if (km && /(radius|ring|distance|between stores|gap|catchment|space)/.test(s)) { out.overlapKm = +km[1]; said.push(`space between stores = ${out.overlapKm} km for every territory`); }
   return { out, said };
 }
 
@@ -257,10 +260,12 @@ function askCore(q, ctx) {
     if (city) pool = pool.filter(a => a.cityName === city);
     if (dec === 'approved') pool = pool.filter(a => a.bucket === 'ready'); else if (dec) pool = pool.filter(a => a.decision === dec);
     const counts = ['approved', 'conditional', 'hold', 'waitlist', 'declined'].map(d => `${DECISION_LABEL[d]} ${result.apps.filter(a => a.decision === d && (!city || a.cityName === city)).length}`).join(' · ');
-    if (/how many|count|summary|overview|total/.test(s) && !/list|show|who/.test(s)) return { html: `<p>${city ? esc(city) + ': ' : ''}${counts}.</p>` };
-    return { html: `<p>${pool.length} ${dec ? DECISION_LABEL[dec].toLowerCase() : ''} ${city ? 'in ' + esc(city) : ''}:</p><ul>${pool.slice(0, 25).map(a => `<li><b>${esc(a.id)}</b> ${esc(a.name)} — ${esc(a.headline)}</li>`).join('')}${pool.length > 25 ? `<li>…and ${pool.length - 25} more (see Applications).</li>` : ''}</ul>` };
+    // A why/how/should question that only matched a city or a decision word gets a list, which may not answer it.
+    const weak = /^(why|how|what|should|is|can|does|do|will|would|could)\b/.test(s) && !/how many|count/.test(s);
+    if (/how many|count|summary|overview|total/.test(s) && !/list|show|who/.test(s)) return { weak, html: `<p>${city ? esc(city) + ': ' : ''}${counts}.</p>` };
+    return { weak, html: `<p>${pool.length} ${dec ? DECISION_LABEL[dec].toLowerCase() : ''} ${city ? 'in ' + esc(city) : ''}:</p><ul>${pool.slice(0, 25).map(a => `<li><b>${esc(a.id)}</b> ${esc(a.name)} — ${esc(a.headline)}</li>`).join('')}${pool.length > 25 ? `<li>…and ${pool.length - 25} more (see Applications).</li>` : ''}</ul>` };
   }
-  if (/rule|how.*decide|ai|why trust/.test(s)) return { html: '<p>Every suggestion comes from fixed rules in a fixed order: data check → pin-code knockout → partner score bar → funding floor → territory match → fundability (funding, payback, experience, demographics) → slot allocation by combined score, one store per pin. The same file always gives the same answer. A person makes the final decision on each profile; this assistant only reads your question and explains the suggestion.</p>' };
+  if (/rule|how.*decide|ai|why trust/.test(s)) return { weak: !/^(how|what) .*(rules?|decide)/.test(s), html: '<p>Every suggestion comes from fixed rules in a fixed order: data check → pin-code knockout → partner score bar → funding floor → territory match → fundability (funding, payback, experience, demographics) → slot allocation by combined score, one store per pin. The same file always gives the same answer. A person makes the final decision on each profile; this assistant only reads your question and explains the suggestion.</p>' };
   return { html: `<p>I couldn't match that to an applicant, territory, number or rule, so I won't guess.</p>${HELP}`, unknown: true };
 }
 
@@ -414,6 +419,7 @@ function sourceLine(result) {
 
 export function ask(q, ctx) {
   HUMAN = ctx.human || {};
+  q = normalizeQuestion(q);
   const out = askSmart(q, ctx);
   if (out.html && !out.undo && !out.reset && !out.help && !out.nav && !out.unknown && !out.plain) out.html += sourceLine(out.result || ctx.result);
   return out;
@@ -441,11 +447,16 @@ function askSmart(q, ctx) {
     const page = PAGE_WORDS.find(([re]) => re.test(s));
     if (page) return { nav: page[1], html: `<p>Opening ${page[2]}.</p>` };
   }
+  // 1b. Wider coverage: lists by any detail, pins and cities, rules, batch views, open questions (ask-more.js)
+  if (!/^(undo|revert|go back|reset|start over)\b/.test(s)) {
+    const more = answerMore(q, ctx, { findIds, findTers, esc, DECISION_LABEL, filtersFrom, applyF, median, nurtureAdvice, insights, WEIGHTS, cityOf: x => x.city });
+    if (more) return more;
+  }
   if (/where (do|can) i (upload|add|load)|how (do|can) i upload/.test(s)) return { plain: true, html: '<p>Use <b>Upload file</b> at the bottom of the menu (or click the file name at the top). Excel or CSV works; sheets and columns are recognised automatically, and "How we read your file" on Home shows what was understood.</p>' };
 
   // 2. Definitions: "what is payback", "what does waitlist mean"
   const def = s.match(/^(what is|what's|what are|what does|define|meaning of|explain the term|explain)\s+(an? |the )?(.+?)(\s+mean)?$/);
-  if (def && !ids.length && !findTers(q, result).length) {
+  if (def && !ids.length && !findTers(q, result).length && !/\b(average|mean|median|total|highest|lowest|typical)\b/.test(s)) {
     const term = def[3].replace(/['"]/g, '').trim();
     const key = GLOSSARY[term] ? term : TERM_ALIAS[term] || Object.keys(GLOSSARY).find(k => term.includes(k)) || Object.keys(TERM_ALIAS).find(k => term.includes(k)) && TERM_ALIAS[Object.keys(TERM_ALIAS).find(k => term.includes(k))];
     if (key && GLOSSARY[key]) return { html: `<p><b>${esc(key[0].toUpperCase() + key.slice(1))}:</b> ${esc(GLOSSARY[key])}</p>` };
@@ -509,7 +520,7 @@ function askSmart(q, ctx) {
   // 7. Numbers across the pool: averages, medians, totals, highest/lowest, top N, rankings
   const agg = /\b(average|mean|avg)\b/.test(s) ? 'avg' : /\b(median|typical)\b/.test(s) ? 'median' : /\b(total|sum|combined)\b/.test(s) ? 'sum' : /\b(highest|maximum|max|biggest|largest|most money|richest)\b/.test(s) ? 'max' : /\b(lowest|minimum|min|smallest|least)\b/.test(s) ? 'min' : null;
   const metric = METRICS.find(([re]) => re.test(s));
-  if (agg && metric && !ids.length) {
+  if (agg && metric && !ids.length && !/^(what if|suppose|imagine)|\bif (the |we )/.test(s)) {
     const f = filtersFrom(q, result), pool = applyF(result.apps, f).filter(a => a[metric[1]] != null && isFinite(a[metric[1]]));
     if (!pool.length) return { html: `<p>No applicants match ${esc(f.label.join(', ') || 'that')}, so there is nothing to calculate.</p>` };
     const vals = pool.map(a => a[metric[1]]);
@@ -517,7 +528,7 @@ function askSmart(q, ctx) {
     const who = agg === 'max' || agg === 'min' ? pool.find(a => a[metric[1]] === v) : null;
     return { html: `<p>${{ avg: 'Average', median: 'Median', sum: 'Total', max: 'Highest', min: 'Lowest' }[agg]} ${metric[2]}${f.label.length ? ' ' + esc(f.label.join(', ')) : ''}: <b>${metric[3](v)}</b>${who ? ` — <a class="lnk" data-go="app/${who.id}">${esc(who.name)} (${who.id})</a>` : ''}.</p><p class="muted">Across ${pool.length} applicant${pool.length > 1 ? 's' : ''} with this number. <a class="lnk" data-go="${filterPath(f)}">See them</a></p>` };
   }
-  const topN = s.match(/\b(top|best)\s*(\d+)?\b.*\b(partners?|leads?|applicants?|people|candidates?)\b/) || s.match(/\bwho (is|are) the best\b/);
+  const topN = s.match(/\b(top|best)\s*(\d+)?\b.*\b(partners?|leads?|applicants?|people|candidates?|guys|ones|folks)\b/) || s.match(/\bwho (is|are) the best\b/);
   if (topN && !ids.length) {
     const k = Math.min(15, +(topN[2] || 5)), f = filtersFrom(q, result);
     const pool = applyF(result.apps, f).filter(a => a.decision !== 'hold' && !a.withdrawn).sort((a, b) => (/partner/.test(s) ? b.partner - a.partner : b.combined - a.combined)).slice(0, k);

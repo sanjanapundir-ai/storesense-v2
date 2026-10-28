@@ -26,6 +26,8 @@ Franchise partner acquisition, geo-selection and onboarding engine (AI x Ops Hac
 | Rules | Every rule, weight and cost assumption |
 | Log | Every search, question, enquiry and change |
 
+The assistant understands typos, chat shorthand, Hinglish and old city names, and answers from the file: any applicant, lists by any detail, pins and cities, rules, summaries, risks and the rollout plan. Questions the rules can't match go to Claude (api/ask.js) with a compact copy of the results, so open questions still get an answer built only from your data; it is labelled as an AI answer and never changes a decision. Set ANTHROPIC_API_KEY in Vercel to switch that on; without it the assistant runs on rules alone.
+
 The assistant is also a side panel on every page (the **Ask** button or Alt+A). On wide screens it docks on the right, like a browser's assistant sidebar, and the page shrinks to make room. You can drag its edge to resize it. It knows which page or person you're looking at, so "why is this person on hold?" works on a profile. It has three tabs: **Chat**; **Transcripts**, where every conversation is recorded word for word with times and pages and can be searched, continued, copied or downloaded; and **Notes**, which holds your own notes, answers you saved with "Add to notes", a line for every answer, and insights, and every number, ID, pin and label links to the data behind it. Every view has its own address, so the browser's Back button works and links can be shared.
 
 ## Run locally
