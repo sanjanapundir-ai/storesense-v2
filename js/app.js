@@ -1,5 +1,6 @@
 // app.js — the expansion team's operating screen. All decisions come from engine.js.
 import { parseWorkbook } from './parse.js';
+import { filesToSheets, ACCEPTED_FORMATS } from './ingest.js';
 import { run, DEFAULTS, ECON, MARGIN, WEIGHTS, PART_LABEL, MILESTONES, lakh, fmtDate, poolAt, pinProxy, CATEGORIES, siteInsight, TRAFFIC, trafficSummary, milestones as planMilestones } from './engine.js';
 import { sampleSheets } from './sample.js';
 import { ask, esc, explain, nextSteps, nurtureAdvice, DECISION_LABEL, insights, suggestionsFor } from './ask.js';
@@ -37,12 +38,18 @@ const S = {
 };
 
 // ---------------- data in ----------------
-function load(sheets, source, quiet) {
+function load(sheets, source, quiet, notes = []) {
   const data = parseWorkbook(sheets);
+  data.report.assumptions.unshift(...notes);
   for (const q of S.inquiries) if (!data.applications.some(a => a.id === q.id)) data.applications.push({ ...q });
   if (!data.applications.length) {
     toast('No applications found in this file. Check that one sheet lists applicants with a name or ID and a city or pin code.');
     return;
+  }
+  // A file with applicants only (e.g. one CSV of new leads) keeps the territory plan already loaded.
+  if (!data.territories.length && S.data?.territories?.length) {
+    data.territories = S.data.territories;
+    data.report.assumptions.push(`No territories in this upload: kept the ${S.data.territories.length} territories from ${S.source}.`);
   }
   if (!data.territories.length) data.report.assumptions.push('No territories sheet found: nobody can be given a spot until territories are added, so strong applicants go on the waitlist.');
   S.data = data; S.source = source; S.history = [];
@@ -70,15 +77,18 @@ function loadPlaces() {
   });
 }
 
+// Any format, one or several files at once (e.g. applicants + territories); see ingest.js.
 $('#file').addEventListener('change', async e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const buf = await f.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
-  const sheets = {};
-  for (const n of wb.SheetNames) sheets[n] = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: '' });
-  load(sheets, f.name);
+  const picked = [...e.target.files];
   e.target.value = '';
+  if (!picked.length) return;
+  try {
+    const files = await Promise.all(picked.map(async f => ({ name: f.name, data: await f.arrayBuffer() })));
+    const { sheets, notes, label } = await filesToSheets(files, XLSX);
+    load(sheets, label, false, notes);
+  } catch (err) {
+    toast(err?.message || `Could not read the file. Please upload ${ACCEPTED_FORMATS}.`);
+  }
 });
 $('#btn-sample').addEventListener('click', () => load(sampleSheets(), 'Sample data'));
 $('#btn-template').addEventListener('click', () => {

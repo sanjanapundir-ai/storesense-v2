@@ -80,8 +80,23 @@ function scoreFit(type, map) {
   return 0;
 }
 
+// The kind of table a single row is the header of ('applications', 'territories', 'stores'), or null.
+// Used to split a sheet that holds several tables one under the other (PDF and Word exports often do).
+export function headerKind(row) {
+  let best = null;
+  for (const [type, spec] of Object.entries(SPECS)) {
+    const { map } = mapHeader(row, spec);
+    const sc = scoreFit(type, map);
+    if (sc >= 5 && (!best || sc > best.score)) best = { type, score: sc };
+  }
+  return best?.type ?? null;
+}
+
+// Reference sheets in the judges' template (Field guide, Allowed values, Glossary...) describe columns; they hold no records.
+export const isHelpSheet = name => /gloss|readme|instruction|help|legend|about|cover|field\s*guide|allowed\s*values|data\s*dictionary/i.test(name);
+
 function classify(name, rows) {
-  if (/gloss|readme|instruction|help|legend|about|cover/i.test(name)) return null;
+  if (isHelpSheet(name)) return null;
   let best = null;
   for (let r = 0; r < Math.min(rows.length, 15); r++) {
     for (const [type, spec] of Object.entries(SPECS)) {
